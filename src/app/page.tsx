@@ -1,103 +1,286 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState, useCallback, useEffect } from 'react';
+import { MapPin, BarChart3, RefreshCw } from 'lucide-react';
+import Map3D from '../components/Map3D';
+import ControlPanel from '@/components/ControlPanel';
+import LatencyChart from '@/components/LatencyChart';
+import Legend from '@/components/Legend';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import MetricsDashboard from '@/components/MetricsDashboard';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { useLatencyData } from '@/hooks/useLatencyData';
+import { useExchangeData } from '@/hooks/useExchangeData';
+import {
+  FilterOptions,
+  VisualizationSettings,
+  ThemeSettings,
+  TimeRange,
+  ExchangeLocation
+} from '@/types';
+import { createLatencyConnections } from '@/lib/exchangeData';
+
+export default function CryptoLatencyVisualizer() {
+  // Theme and settings state
+  const [theme, setTheme] = useState<ThemeSettings>({
+    mode: 'dark',
+    mapStyle: 'realistic'
+  });
+
+  const [filters, setFilters] = useState<FilterOptions>({
+    exchanges: [],
+    cloudProviders: [],
+    latencyRange: { min: 0, max: 500 },
+    showRealTime: true,
+    showHistorical: false,
+    showRegions: true
+  });
+
+  const [visualizationSettings, setVisualizationSettings] = useState<VisualizationSettings>({
+    showLatencyHeatmap: false,
+    showNetworkTopology: true,
+    showDataFlow: true,
+    animationSpeed: 1.0,
+    particleCount: 50
+  });
+
+  // Chart state
+  const [selectedPair, setSelectedPair] = useState<{ source: string; target: string } | undefined>();
+  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
+  const [showChart, setShowChart] = useState(false);
+
+  // Data hooks
+  const {
+    latencyData,
+    historicalData,
+    metrics,
+    isLoading,
+    error,
+    refreshData,
+    lastUpdated
+  } = useLatencyData(10000); // Refresh every 10 seconds
+
+  const {
+    exchanges,
+    connections,
+    filteredExchanges,
+    filteredConnections,
+    selectedExchange,
+    setSelectedExchange,
+    hoveredExchange,
+    setHoveredExchange
+  } = useExchangeData(filters);
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme.mode === 'dark');
+  }, [theme.mode]);
+
+  // Handle exchange click
+  const handleExchangeClick = useCallback((exchange: ExchangeLocation) => {
+    setSelectedExchange(exchange);
+    
+    // Find a connection involving this exchange for the chart
+    const connection = filteredConnections.find(
+      conn => conn.source.id === exchange.id || conn.target.id === exchange.id
+    );
+    
+    if (connection) {
+      setSelectedPair({
+        source: connection.source.id,
+        target: connection.target.id
+      });
+      setShowChart(true);
+    }
+  }, [filteredConnections, setSelectedExchange]);
+
+  // Handle exchange hover
+  const handleExchangeHover = useCallback((exchange: ExchangeLocation | null) => {
+    setHoveredExchange(exchange);
+  }, [setHoveredExchange]);
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <Card className="p-8 text-center max-w-md">
+          <div className="text-red-500 mb-4">
+            <MapPin className="w-12 h-12 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Unable to Load Data</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <Button onClick={refreshData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className={`min-h-screen transition-colors duration-200 ${
+      theme.mode === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900' 
+        : 'bg-gradient-to-br from-blue-50 via-white to-blue-50'
+    }`}>
+      {/* Header */}
+      <header className="relative z-40 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-600 rounded-lg">
+              <MapPin className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Crypto Exchange Latency Monitor
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Real-time visualization of global trading infrastructure
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowChart(!showChart)}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              {showChart ? 'Hide' : 'Show'} Chart
+            </Button>
+            <Button variant="outline" size="sm" onClick={refreshData}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </header>
+
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
+          <Card className="p-8">
+            <LoadingSpinner size="lg" message="Loading exchange data..." />
+          </Card>
+        </div>
+      )}
+
+      {/* Main content */}
+      <div className="relative">
+        {/* 3D Map */}
+        <div className="h-screen relative">
+          <Map3D
+            exchanges={filteredExchanges}
+            connections={createLatencyConnections(exchanges, latencyData)}
+            filters={filters}
+            visualizationSettings={visualizationSettings}
+            theme={theme.mode}
+            onExchangeClick={handleExchangeClick}
+            onExchangeHover={handleExchangeHover}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          
+          {/* Control Panel */}
+          <ControlPanel
+            filters={filters}
+            visualizationSettings={visualizationSettings}
+            theme={theme}
+            onFiltersChange={setFilters}
+            onVisualizationChange={setVisualizationSettings}
+            onThemeChange={setTheme}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+          
+          {/* Legend */}
+          <Legend className="fixed bottom-4 left-4 z-30" />
+          
+          {/* Metrics Dashboard */}
+          <MetricsDashboard
+            metrics={metrics}
+            isLoading={isLoading}
+            className="fixed bottom-4 right-4 z-30 w-80"
           />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          
+          {/* Selected Exchange Info */}
+          {selectedExchange && (
+            <Card className="fixed top-20 left-4 z-30 p-4 max-w-sm">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold">{selectedExchange.displayName}</h4>
+                <button
+                  onClick={() => setSelectedExchange(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Provider:</span>
+                  <span className="font-medium">{selectedExchange.cloudProvider}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Region:</span>
+                  <span className="font-medium">{selectedExchange.region}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Servers:</span>
+                  <span className="font-medium">{selectedExchange.serverCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className={`font-medium capitalize ${
+                    selectedExchange.status === 'online' ? 'text-green-600' :
+                    selectedExchange.status === 'maintenance' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {selectedExchange.status}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Hovered Exchange Tooltip */}
+          {hoveredExchange && (
+            <Card className="fixed top-32 left-4 z-40 p-3 pointer-events-none">
+              <p className="font-medium text-sm">{hoveredExchange.displayName}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {hoveredExchange.cloudProvider} • {hoveredExchange.region}
+              </p>
+            </Card>
+          )}
+        </div>
+
+        {/* Latency Chart Panel */}
+        {showChart && (
+          <div className="fixed inset-x-4 bottom-4 z-30 h-96">
+            <LatencyChart
+              data={historicalData}
+              selectedPair={selectedPair}
+              timeRange={timeRange}
+              onTimeRangeChange={setTimeRange}
+              theme={theme.mode}
+              className="h-full"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Status Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/50 backdrop-blur-sm text-white text-xs p-2">
+        <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+          <div className="flex items-center space-x-4">
+            <span>Exchanges: {filteredExchanges.length}/{exchanges.length}</span>
+            <span>Connections: {filteredConnections.length}</span>
+            <span>Avg Latency: {metrics.averageLatency.toFixed(1)}ms</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span>Live • Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
