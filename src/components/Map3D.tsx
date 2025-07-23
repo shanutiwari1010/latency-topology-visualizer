@@ -8,9 +8,9 @@ import {
   Line,
   Text,
   Billboard,
+  Stars,
 } from "@react-three/drei";
 import * as THREE from "three";
-// import { ExchangeLocation, LatencyConnection, FilterOptions, VisualizationSettings } from '@/types';
 import type {
   ExchangeLocation,
   LatencyConnection,
@@ -57,35 +57,152 @@ const getLatencyQuality = (
   return "poor";
 };
 
-// Earth component
+// Enhanced Earth component with better visibility for both themes
 const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 512;
+    canvas.width = 2048;
+    canvas.height = 1024;
     const context = canvas.getContext("2d");
 
     if (context) {
-      const gradient = context.createLinearGradient(
+      // Create ocean gradient - optimized for both themes
+      const oceanGradient = context.createLinearGradient(
         0,
         0,
         canvas.width,
         canvas.height
       );
       if (theme === "dark") {
-        gradient.addColorStop(0, "#0f172a");
-        gradient.addColorStop(0.5, "#1e293b");
-        gradient.addColorStop(1, "#0f172a");
+        // Brighter ocean colors for dark mode
+        oceanGradient.addColorStop(0, "#1e40af");
+        oceanGradient.addColorStop(0.3, "#1d4ed8");
+        oceanGradient.addColorStop(0.5, "#2563eb");
+        oceanGradient.addColorStop(0.7, "#3b82f6");
+        oceanGradient.addColorStop(1, "#1e40af");
       } else {
-        gradient.addColorStop(0, "#e0f2fe");
-        gradient.addColorStop(0.5, "#0284c7");
-        gradient.addColorStop(1, "#0c4a6e");
+        // Enhanced light mode ocean with better contrast
+        oceanGradient.addColorStop(0, "#0c4a6e");
+        oceanGradient.addColorStop(0.2, "#075985");
+        oceanGradient.addColorStop(0.4, "#0369a1");
+        oceanGradient.addColorStop(0.6, "#0284c7");
+        oceanGradient.addColorStop(0.8, "#0ea5e9");
+        oceanGradient.addColorStop(1, "#38bdf8");
       }
 
-      context.fillStyle = gradient;
+      context.fillStyle = oceanGradient;
       context.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Add continents with theme-appropriate colors
+      const landColor = theme === "dark" ? "#22c55e" : "#059669"; // Rich green for both themes
+      context.fillStyle = landColor;
+
+      // Simplified continent shapes for better performance and visibility
+      const continents = [
+        // North America
+        { x: 0.15, y: 0.25, w: 0.2, h: 0.3 },
+        // South America
+        { x: 0.25, y: 0.55, w: 0.1, h: 0.25 },
+        // Europe
+        { x: 0.45, y: 0.2, w: 0.08, h: 0.15 },
+        // Africa
+        { x: 0.45, y: 0.35, w: 0.12, h: 0.3 },
+        // Asia
+        { x: 0.65, y: 0.15, w: 0.25, h: 0.4 },
+        // Australia
+        { x: 0.8, y: 0.65, w: 0.12, h: 0.15 },
+        // Greenland
+        { x: 0.3, y: 0.1, w: 0.06, h: 0.08 },
+      ];
+
+      continents.forEach((cont) => {
+        const x = cont.x * canvas.width;
+        const y = cont.y * canvas.height;
+        const w = cont.w * canvas.width;
+        const h = cont.h * canvas.height;
+
+        context.beginPath();
+        context.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, 2 * Math.PI);
+        context.fill();
+
+        // Add coastal variation for more realistic look
+        if (theme === "dark") {
+          context.fillStyle = "#16a34a"; // Slightly different green for variation
+          for (let i = 0; i < 3; i++) {
+            const vx = x + Math.random() * w;
+            const vy = y + Math.random() * h;
+            const vr = Math.random() * 20 + 5;
+            context.beginPath();
+            context.arc(vx, vy, vr, 0, 2 * Math.PI);
+            context.fill();
+          }
+          context.fillStyle = landColor; // Reset to main land color
+        } else {
+          // Light theme coastal details
+          context.fillStyle = "#047857"; // Darker green for contrast
+          for (let i = 0; i < 4; i++) {
+            const vx = x + Math.random() * w;
+            const vy = y + Math.random() * h;
+            const vr = Math.random() * 25 + 8;
+            context.beginPath();
+            context.arc(vx, vy, vr, 0, 2 * Math.PI);
+            context.fill();
+          }
+          context.fillStyle = landColor; // Reset to main land color
+        }
+      });
+
+      // Add atmospheric effects for both themes
+      if (theme === "dark") {
+        // Dark mode glow effect
+        const glowGradient = context.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          0,
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width / 2
+        );
+        glowGradient.addColorStop(0, "rgba(59, 130, 246, 0.1)");
+        glowGradient.addColorStop(0.7, "rgba(59, 130, 246, 0.05)");
+        glowGradient.addColorStop(1, "rgba(59, 130, 246, 0.2)");
+
+        context.fillStyle = glowGradient;
+        context.globalCompositeOperation = "screen";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.globalCompositeOperation = "source-over";
+      } else {
+        // Light mode atmospheric effect
+        const lightGradient = context.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          0,
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width / 2
+        );
+        lightGradient.addColorStop(0, "rgba(255, 255, 255, 0.1)");
+        lightGradient.addColorStop(0.6, "rgba(255, 255, 255, 0.05)");
+        lightGradient.addColorStop(1, "rgba(14, 165, 233, 0.1)");
+
+        context.fillStyle = lightGradient;
+        context.globalCompositeOperation = "overlay";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.globalCompositeOperation = "source-over";
+
+        // Add subtle cloud patterns for light mode
+        context.fillStyle = "rgba(255, 255, 255, 0.15)";
+        for (let i = 0; i < 15; i++) {
+          const cx = Math.random() * canvas.width;
+          const cy = Math.random() * canvas.height;
+          const radius = Math.random() * 80 + 40;
+          context.beginPath();
+          context.arc(cx, cy, radius, 0, 2 * Math.PI);
+          context.fill();
+        }
+      }
     }
 
     return new THREE.CanvasTexture(canvas);
@@ -93,7 +210,7 @@ const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.05;
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.02; // Slower rotation
     }
   });
 
@@ -102,16 +219,21 @@ const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
       <meshStandardMaterial
         map={texture}
         transparent
-        opacity={theme === "dark" ? 0.8 : 0.9}
-        roughness={0.8}
-        metalness={0.1}
-        color="#0284c7"
+        opacity={theme === "dark" ? 0.95 : 0.92}
+        roughness={theme === "dark" ? 0.6 : 0.7}
+        metalness={theme === "dark" ? 0.2 : 0.15}
+        emissive={
+          theme === "dark"
+            ? new THREE.Color("#001122")
+            : new THREE.Color("#000308")
+        }
+        emissiveIntensity={theme === "dark" ? 0.1 : 0.05}
       />
     </Sphere>
   );
 };
 
-// Exchange marker component
+// Enhanced Exchange marker component
 const ExchangeMarker: React.FC<{
   exchange: ExchangeLocation;
   isFiltered: boolean;
@@ -135,9 +257,13 @@ const ExchangeMarker: React.FC<{
 
   useFrame((state) => {
     if (meshRef.current) {
-      const scale = hovered ? 1.2 : 1;
+      const scale = hovered ? 1.3 : 1;
       meshRef.current.scale.setScalar(scale);
-      meshRef.current.rotation.y = state.clock.elapsedTime * 2;
+      meshRef.current.rotation.y = state.clock.elapsedTime * (hovered ? 4 : 2);
+
+      // Add pulsing effect
+      const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.1 + 1;
+      meshRef.current.scale.multiplyScalar(pulse);
     }
   });
 
@@ -145,6 +271,7 @@ const ExchangeMarker: React.FC<{
 
   return (
     <group position={position}>
+      {/* Main marker */}
       <mesh
         ref={meshRef}
         onClick={() => onClick(exchange)}
@@ -157,17 +284,62 @@ const ExchangeMarker: React.FC<{
           onHover(null);
         }}
       >
-        <boxGeometry args={[0.02, 0.02, 0.02]} />
+        <boxGeometry args={[0.025, 0.025, 0.025]} />
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.3}
+          emissiveIntensity={hovered ? 0.5 : 0.3}
+          roughness={0.3}
+          metalness={0.7}
         />
       </mesh>
+
+      {/* Glowing ring around marker */}
+      <mesh position={[0, 0, 0]}>
+        <ringGeometry args={[0.02, 0.03, 16]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={hovered ? 0.6 : 0.3}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Status indicator */}
+      <mesh position={[0, 0.04, 0]}>
+        <sphereGeometry args={[0.005, 8, 6]} />
+        <meshBasicMaterial
+          color={
+            exchange.status === "online"
+              ? "#10b981"
+              : exchange.status === "maintenance"
+              ? "#f59e0b"
+              : "#ef4444"
+          }
+        />
+      </mesh>
+
+      {/* Text label */}
       {hovered && (
-        <Billboard position={[0, 0.1, 0]}>
-          <Text fontSize={0.03} color={color} anchorX="center" anchorY="bottom">
+        <Billboard position={[0, 0.08, 0]}>
+          <Text
+            fontSize={0.025}
+            color={color}
+            anchorX="center"
+            anchorY="bottom"
+            outlineWidth={theme === "dark" ? 0.002 : 0.003}
+            outlineColor={theme === "dark" ? "#000000" : "#ffffff"}
+          >
             {exchange.displayName}
+            {"\n"}
+            <Text
+              fontSize={0.015}
+              color={theme === "dark" ? "#ffffff" : "#1f2937"}
+              outlineWidth={theme === "dark" ? 0.001 : 0.002}
+              outlineColor={theme === "dark" ? "#000000" : "#ffffff"}
+            >
+              {exchange.region} • {exchange.status}
+            </Text>
           </Text>
         </Billboard>
       )}
@@ -175,7 +347,7 @@ const ExchangeMarker: React.FC<{
   );
 };
 
-// Animated latency connection
+// Enhanced Animated latency connection
 const LatencyConnection: React.FC<{
   connection: LatencyConnection;
   isVisible: boolean;
@@ -183,7 +355,7 @@ const LatencyConnection: React.FC<{
 }> = ({ connection, isVisible, animationSpeed }) => {
   const lineRef = useRef<THREE.Line>(null);
   const particleRef = useRef<THREE.Mesh>(null);
-  const [animationProgress, setAnimationProgress] = useState(0);
+  const [animationProgress, setAnimationProgress] = useState(Math.random());
 
   const sourcePos = useMemo(
     () =>
@@ -207,7 +379,9 @@ const LatencyConnection: React.FC<{
 
   const curve = useMemo(() => {
     const midPoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
-    midPoint.normalize().multiplyScalar(1.3); // Arc height
+    const distance = sourcePos.distanceTo(targetPos);
+    const height = 1.1 + distance * 0.3; // Dynamic arc height based on distance
+    midPoint.normalize().multiplyScalar(height);
     return new THREE.QuadraticBezierCurve3(sourcePos, midPoint, targetPos);
   }, [sourcePos, targetPos]);
 
@@ -217,12 +391,17 @@ const LatencyConnection: React.FC<{
   useFrame((state) => {
     if (!isVisible) return;
 
-    const newProgress = (state.clock.elapsedTime * animationSpeed) % 1;
+    const newProgress =
+      (state.clock.elapsedTime * animationSpeed + animationProgress) % 1;
     setAnimationProgress(newProgress);
 
     if (particleRef.current) {
       const point = curve.getPoint(newProgress);
       particleRef.current.position.copy(point);
+
+      // Fade particle at the end of the curve
+      const material = particleRef.current.material as THREE.MeshBasicMaterial;
+      material.opacity = Math.sin(newProgress * Math.PI);
     }
   });
 
@@ -230,26 +409,39 @@ const LatencyConnection: React.FC<{
 
   return (
     <group>
-      {/* Connection line */}
+      {/* Connection line with gradient effect */}
       <Line
         ref={lineRef}
         points={curve.getPoints(50)}
         color={color}
-        lineWidth={2}
+        lineWidth={connection.latency > 100 ? 3 : 2}
         transparent
-        opacity={0.6}
+        opacity={0.7}
       />
 
       {/* Animated particle */}
       <mesh ref={particleRef}>
-        <sphereGeometry args={[0.005, 8, 6]} />
-        <meshBasicMaterial color={color} />
+        <sphereGeometry args={[0.006, 8, 6]} />
+        <meshBasicMaterial color={color} transparent opacity={0.9} />
       </mesh>
+
+      {/* Pulse effect for high latency */}
+      {connection.latency > 100 && (
+        <mesh position={curve.getPoint(0.5)}>
+          <ringGeometry args={[0.01, 0.02, 8]} />
+          <meshBasicMaterial
+            color="#ff4444"
+            transparent
+            opacity={0.5}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
     </group>
   );
 };
 
-// Cloud region visualization
+// Enhanced Cloud region visualization
 const CloudRegion: React.FC<{
   region: {
     name: string;
@@ -258,6 +450,7 @@ const CloudRegion: React.FC<{
   };
   isVisible: boolean;
 }> = ({ region, isVisible }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
   const position = useMemo(
     () =>
       latLngToVector3(
@@ -268,18 +461,40 @@ const CloudRegion: React.FC<{
     [region.coordinates]
   );
 
+  const color =
+    PROVIDER_COLORS[region.provider as keyof typeof PROVIDER_COLORS];
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.z = state.clock.elapsedTime * 0.5;
+      // Subtle pulsing
+      const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.1 + 1;
+      meshRef.current.scale.setScalar(pulse);
+    }
+  });
+
   if (!isVisible) return null;
 
   return (
     <group position={position}>
-      <mesh>
-        <ringGeometry args={[0.03, 0.05, 16]} />
+      <mesh ref={meshRef}>
+        <ringGeometry args={[0.04, 0.06, 16]} />
         <meshBasicMaterial
-          color={
-            PROVIDER_COLORS[region.provider as keyof typeof PROVIDER_COLORS]
-          }
+          color={color}
           transparent
-          opacity={0.3}
+          opacity={0.4}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Inner glow */}
+      <mesh>
+        <ringGeometry args={[0.02, 0.04, 16]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.2}
+          side={THREE.DoubleSide}
         />
       </mesh>
     </group>
@@ -324,14 +539,68 @@ const Scene3D: React.FC<Map3DProps> = ({
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={theme === "dark" ? 0.3 : 0.5} />
+      {/* Enhanced lighting system optimized for both themes */}
+      <ambientLight intensity={theme === "dark" ? 0.4 : 0.6} />
       <directionalLight
         position={[5, 5, 5]}
-        intensity={theme === "dark" ? 0.8 : 1}
+        intensity={theme === "dark" ? 1.2 : 1.5}
         castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
       />
-      <pointLight position={[-5, -5, -5]} intensity={0.5} />
+      <pointLight
+        position={[-5, -5, -5]}
+        intensity={theme === "dark" ? 0.8 : 0.7}
+        color={theme === "dark" ? "#4f46e5" : "#f59e0b"}
+      />
+
+      {/* Theme-specific additional lighting */}
+      {theme === "dark" ? (
+        <>
+          <pointLight position={[0, 0, 5]} intensity={0.3} color="#3b82f6" />
+          <pointLight position={[0, 5, 0]} intensity={0.2} color="#8b5cf6" />
+        </>
+      ) : (
+        <>
+          <pointLight position={[3, 3, 3]} intensity={0.4} color="#fbbf24" />
+          <pointLight position={[-3, 2, -3]} intensity={0.3} color="#06b6d4" />
+          <directionalLight
+            position={[-5, 10, 5]}
+            intensity={0.6}
+            color="#ffffff"
+          />
+        </>
+      )}
+
+      {/* Background elements */}
+      {theme === "dark" ? (
+        <Stars
+          radius={300}
+          depth={60}
+          count={1000}
+          factor={6}
+          saturation={0.1}
+          fade
+          speed={0.5}
+        />
+      ) : (
+        // Light mode atmospheric particles
+        <group>
+          {[...Array(50)].map((_, i) => (
+            <mesh
+              key={i}
+              position={[
+                (Math.random() - 0.5) * 50,
+                (Math.random() - 0.5) * 50,
+                (Math.random() - 0.5) * 50,
+              ]}
+            >
+              <sphereGeometry args={[0.02, 4, 4]} />
+              <meshBasicMaterial color="#e0f2fe" transparent opacity={0.1} />
+            </mesh>
+          ))}
+        </group>
+      )}
 
       {/* Earth */}
       <Earth theme={theme} />
@@ -357,15 +626,19 @@ const Scene3D: React.FC<Map3DProps> = ({
         />
       ))}
 
-      {/* Camera controls */}
+      {/* Enhanced Camera controls */}
       <OrbitControls
         enableZoom={true}
         enablePan={true}
         enableRotate={true}
         minDistance={1.5}
-        maxDistance={5}
+        maxDistance={8}
         autoRotate={false}
-        autoRotateSpeed={0.5}
+        autoRotateSpeed={0.2}
+        dampingFactor={0.05}
+        enableDamping={true}
+        maxPolarAngle={Math.PI}
+        minPolarAngle={0}
       />
     </>
   );
@@ -373,11 +646,31 @@ const Scene3D: React.FC<Map3DProps> = ({
 
 // Main Map3D component
 const Map3D: React.FC<Map3DProps> = (props) => {
+  // Enhanced background colors for optimal contrast in both themes
+  const backgroundColor = useMemo(() => {
+    if (props.theme === "dark") {
+      return "#000011"; // Very dark blue for dramatic contrast
+    } else {
+      return "#f8fafc"; // Light blue-gray with subtle tint
+    }
+  }, [props.theme]);
+
   return (
     <div className="w-full h-full">
       <Canvas
         camera={{ position: [0, 0, 3], fov: 60 }}
-        style={{ background: props.theme === "dark" ? "#000000" : "#f8fafc" }}
+        style={{ background: backgroundColor }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance",
+          toneMapping:
+            props.theme === "dark"
+              ? THREE.ACESFilmicToneMapping
+              : THREE.LinearToneMapping,
+          toneMappingExposure: props.theme === "dark" ? 1.2 : 1.0,
+        }}
+        shadows={true}
       >
         <Scene3D {...props} />
       </Canvas>
