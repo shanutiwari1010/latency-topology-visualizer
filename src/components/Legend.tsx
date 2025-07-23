@@ -14,7 +14,7 @@ interface LegendProps {
 const Legend: React.FC<LegendProps> = ({ className }) => {
   return (
     <Card className={`p-4 ${className}`}>
-      <div className="flex items-center mb-3">
+      <div className="flex items-center">
         <Info className="w-4 h-4 mr-2 text-blue-600" />
         <h4 className="font-semibold text-sm">Legend</h4>
       </div>

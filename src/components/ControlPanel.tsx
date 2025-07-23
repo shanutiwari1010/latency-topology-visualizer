@@ -9,8 +9,17 @@ import {
 } from "@/constants/exchangeLocations";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Select } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 interface ControlPanelProps {
   filters: FilterOptions;
@@ -20,6 +29,14 @@ interface ControlPanelProps {
   onVisualizationChange: (settings: VisualizationSettings) => void;
   onThemeChange: (theme: ThemeSettings) => void;
 }
+
+type FiltersOptions = "filters" | "visualization" | "theme";
+
+const MAP_STYLES_OPTIONS = [
+  { value: "realistic", label: "Realistic" },
+  { value: "minimal", label: "Minimal" },
+  { value: "neon", label: "Neon" },
+];
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
   filters,
@@ -31,22 +48,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "filters" | "visualization" | "theme"
-  >("filters");
+  const [activeTab, setActiveTab] = useState<FiltersOptions>("filters");
 
-  // Get unique exchange names
   const uniqueExchanges = Array.from(
     new Set(EXCHANGE_LOCATIONS.map((loc) => loc.name))
   );
 
-  const handleFilterChange = (key: keyof FilterOptions, value: any) => {
+  const handleFilterChange = (
+    key: keyof FilterOptions,
+    value: string[] | boolean
+  ) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
   const handleVisualizationChange = (
     key: keyof VisualizationSettings,
-    value: any
+    value: string[] | boolean | number
   ) => {
     onVisualizationChange({ ...visualizationSettings, [key]: value });
   };
@@ -97,7 +114,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   }
 
   return (
-    <Card className="fixed top-22 right-2 w-96 max-h-[60vh] overflow-y-auto z-50 p-4">
+    <Card className="fixed top-22 right-2 w-96 max-h-[84vh] overflow-y-auto z-50 p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Control Panel</h3>
         <Button variant="ghost" size="sm" onClick={() => setIsExpanded(false)}>
@@ -105,7 +122,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         </Button>
       </div>
 
-      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 -mt-3">
         {[
           { key: "filters", label: "Filters", icon: Filter },
           { key: "visualization", label: "Visual", icon: Eye },
@@ -116,7 +133,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             variant={activeTab === tab.key ? "default" : "ghost"}
             size="sm"
             className="flex-1"
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key as FiltersOptions)}
           >
             <tab.icon className="w-3 h-3 mr-1" />
             {tab.label}
@@ -126,7 +143,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* Search Bar */}
       {activeTab === "filters" && (
-        <div className="relative mb-4">
+        <div className="relative -mt-2">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
@@ -140,7 +157,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* Filters Tab */}
       {activeTab === "filters" && (
-        <div className="space-y-4">
+        <div className="space-y-4 -mt-2">
           {/* Exchange Selection */}
           <div>
             <label className="block text-sm font-medium mb-2">Exchanges</label>
@@ -240,27 +257,38 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               Display Options
             </label>
             <div className="space-y-2">
-              <Switch
-                checked={filters.showRealTime}
-                onCheckedChange={(checked) =>
-                  handleFilterChange("showRealTime", checked)
-                }
-                label="Real-time Connections"
-              />
-              <Switch
-                checked={filters.showHistorical}
-                onCheckedChange={(checked) =>
-                  handleFilterChange("showHistorical", checked)
-                }
-                label="Historical Data"
-              />
-              <Switch
-                checked={filters.showRegions}
-                onCheckedChange={(checked) =>
-                  handleFilterChange("showRegions", checked)
-                }
-                label="Cloud Regions"
-              />
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="real-time-connections"
+                  checked={filters.showRealTime}
+                  onCheckedChange={(checked) =>
+                    handleFilterChange("showRealTime", checked)
+                  }
+                />
+                <Label htmlFor="real-time-connections">
+                  Real-time Connections
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="historical-data"
+                  checked={filters.showHistorical}
+                  onCheckedChange={(checked) =>
+                    handleFilterChange("showHistorical", checked)
+                  }
+                />
+                <Label htmlFor="real-time-connections">Historical Data</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="cloud-regions"
+                  checked={filters.showRegions}
+                  onCheckedChange={(checked) =>
+                    handleFilterChange("showRegions", checked)
+                  }
+                />
+                <Label htmlFor="cloud-regions">Cloud Regions</Label>
+              </div>
             </div>
           </div>
 
@@ -316,27 +344,36 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Switch
-              checked={visualizationSettings.showLatencyHeatmap}
-              onCheckedChange={(checked) =>
-                handleVisualizationChange("showLatencyHeatmap", checked)
-              }
-              label="Latency Heatmap"
-            />
-            <Switch
-              checked={visualizationSettings.showNetworkTopology}
-              onCheckedChange={(checked) =>
-                handleVisualizationChange("showNetworkTopology", checked)
-              }
-              label="Network Topology"
-            />
-            <Switch
-              checked={visualizationSettings.showDataFlow}
-              onCheckedChange={(checked) =>
-                handleVisualizationChange("showDataFlow", checked)
-              }
-              label="Data Flow Animation"
-            />
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="latency-heatmap"
+                checked={visualizationSettings.showLatencyHeatmap}
+                onCheckedChange={(checked) =>
+                  handleVisualizationChange("showLatencyHeatmap", checked)
+                }
+              />
+              <Label htmlFor="latency-heatmap">Latency Heatmap</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="network-topology"
+                checked={visualizationSettings.showNetworkTopology}
+                onCheckedChange={(checked) =>
+                  handleVisualizationChange("showNetworkTopology", checked)
+                }
+              />
+              <Label htmlFor="network-topology">Network Topology</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="data-flow-animation"
+                checked={visualizationSettings.showDataFlow}
+                onCheckedChange={(checked) =>
+                  handleVisualizationChange("showDataFlow", checked)
+                }
+              />
+              <Label htmlFor="data-flow-animation">Data Flow Animation</Label>
+            </div>
           </div>
         </div>
       )}
@@ -367,18 +404,27 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Map Style</label>
+            <Label className="block text-sm font-medium mb-2">Map Style</Label>
             <Select
               value={theme.mapStyle}
               onValueChange={(value) =>
-                onThemeChange({ ...theme, mapStyle: value as any })
+                onThemeChange({ ...theme, mapStyle: value as never })
               }
-              options={[
-                { value: "realistic", label: "Realistic" },
-                { value: "minimal", label: "Minimal" },
-                { value: "neon", label: "Neon" },
-              ]}
-            />
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select styling options" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Styles</SelectLabel>
+                  {MAP_STYLES_OPTIONS?.map((style) => (
+                    <SelectItem key={style.value} value={style.value}>
+                      {style.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}

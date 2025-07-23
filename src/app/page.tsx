@@ -23,7 +23,6 @@ import { createLatencyConnections } from "@/lib/exchangeData";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 
 export default function CryptoLatencyVisualizer() {
-  // Theme and settings state
   const [theme, setTheme] = useState<ThemeSettings>({
     mode: "dark",
     mapStyle: "realistic",
@@ -193,6 +192,7 @@ export default function CryptoLatencyVisualizer() {
             filters={filters}
             visualizationSettings={visualizationSettings}
             theme={theme.mode}
+            mapStyle={theme.mapStyle}
             onExchangeClick={handleExchangeClick}
             onExchangeHover={handleExchangeHover}
           />

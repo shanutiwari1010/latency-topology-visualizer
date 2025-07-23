@@ -31,6 +31,7 @@ interface Map3DProps {
   filters: FilterOptions;
   visualizationSettings: VisualizationSettings;
   theme: "dark" | "light";
+  mapStyle?: "realistic" | "neon" | "minimal";
   onExchangeClick?: (exchange: ExchangeLocation) => void;
   onExchangeHover?: (exchange: ExchangeLocation | null) => void;
 }
@@ -57,9 +58,13 @@ const getLatencyQuality = (
   return "poor";
 };
 
-// Enhanced Earth component with better visibility for both themes
-const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
+// Enhanced Earth component with multiple map styles
+const Earth: React.FC<{
+  theme: "dark" | "light";
+  mapStyle?: "realistic" | "neon" | "minimal";
+}> = ({ theme, mapStyle }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  console.log(mapStyle, "mapstyle");
 
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
@@ -68,53 +73,87 @@ const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
     const context = canvas.getContext("2d");
 
     if (context) {
-      // Create ocean gradient - optimized for both themes
+      // Create style-specific ocean gradients
       const oceanGradient = context.createLinearGradient(
         0,
         0,
         canvas.width,
         canvas.height
       );
-      if (theme === "dark") {
-        // Brighter ocean colors for dark mode
-        oceanGradient.addColorStop(0, "#1e40af");
-        oceanGradient.addColorStop(0.3, "#1d4ed8");
-        oceanGradient.addColorStop(0.5, "#2563eb");
-        oceanGradient.addColorStop(0.7, "#3b82f6");
-        oceanGradient.addColorStop(1, "#1e40af");
+
+      if (mapStyle === "neon") {
+        // Neon style - bright, electric colors
+        if (theme === "dark") {
+          oceanGradient.addColorStop(0, "#0a0a23");
+          oceanGradient.addColorStop(0.3, "#1a0d4d");
+          oceanGradient.addColorStop(0.5, "#2d1b69");
+          oceanGradient.addColorStop(0.7, "#4338ca");
+          oceanGradient.addColorStop(1, "#6366f1");
+        } else {
+          oceanGradient.addColorStop(0, "#312e81");
+          oceanGradient.addColorStop(0.3, "#4338ca");
+          oceanGradient.addColorStop(0.5, "#6366f1");
+          oceanGradient.addColorStop(0.7, "#8b5cf6");
+          oceanGradient.addColorStop(1, "#a855f7");
+        }
+      } else if (mapStyle === "minimal") {
+        // Minimal style - muted, clean colors
+        if (theme === "dark") {
+          oceanGradient.addColorStop(0, "#374151");
+          oceanGradient.addColorStop(0.5, "#4b5563");
+          oceanGradient.addColorStop(1, "#6b7280");
+        } else {
+          oceanGradient.addColorStop(0, "#e5e7eb");
+          oceanGradient.addColorStop(0.5, "#d1d5db");
+          oceanGradient.addColorStop(1, "#9ca3af");
+        }
       } else {
-        // Enhanced light mode ocean with better contrast
-        oceanGradient.addColorStop(0, "#0c4a6e");
-        oceanGradient.addColorStop(0.2, "#075985");
-        oceanGradient.addColorStop(0.4, "#0369a1");
-        oceanGradient.addColorStop(0.6, "#0284c7");
-        oceanGradient.addColorStop(0.8, "#0ea5e9");
-        oceanGradient.addColorStop(1, "#38bdf8");
+        // Realistic style - natural colors (existing implementation)
+        if (theme === "dark") {
+          oceanGradient.addColorStop(0, "#1e40af");
+          oceanGradient.addColorStop(0.3, "#1d4ed8");
+          oceanGradient.addColorStop(0.5, "#2563eb");
+          oceanGradient.addColorStop(0.7, "#3b82f6");
+          oceanGradient.addColorStop(1, "#1e40af");
+        } else {
+          oceanGradient.addColorStop(0, "#0c4a6e");
+          oceanGradient.addColorStop(0.2, "#075985");
+          oceanGradient.addColorStop(0.4, "#0369a1");
+          oceanGradient.addColorStop(0.6, "#0284c7");
+          oceanGradient.addColorStop(0.8, "#0ea5e9");
+          oceanGradient.addColorStop(1, "#38bdf8");
+        }
       }
 
       context.fillStyle = oceanGradient;
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Add continents with theme-appropriate colors
-      const landColor = theme === "dark" ? "#22c55e" : "#059669"; // Rich green for both themes
+      // Add continents with style-specific colors
+      let landColor: string;
+      let coastalColor: string;
+
+      if (mapStyle === "neon") {
+        landColor = theme === "dark" ? "#00ff88" : "#10b981";
+        coastalColor = theme === "dark" ? "#00cc6a" : "#059669";
+      } else if (mapStyle === "minimal") {
+        landColor = theme === "dark" ? "#9ca3af" : "#6b7280";
+        coastalColor = theme === "dark" ? "#6b7280" : "#4b5563";
+      } else {
+        landColor = theme === "dark" ? "#22c55e" : "#059669";
+        coastalColor = theme === "dark" ? "#16a34a" : "#047857";
+      }
+
       context.fillStyle = landColor;
 
-      // Simplified continent shapes for better performance and visibility
+      // Simplified continent shapes
       const continents = [
-        // North America
-        { x: 0.15, y: 0.25, w: 0.2, h: 0.3 },
-        // South America
-        { x: 0.25, y: 0.55, w: 0.1, h: 0.25 },
-        // Europe
-        { x: 0.45, y: 0.2, w: 0.08, h: 0.15 },
-        // Africa
-        { x: 0.45, y: 0.35, w: 0.12, h: 0.3 },
-        // Asia
-        { x: 0.65, y: 0.15, w: 0.25, h: 0.4 },
-        // Australia
-        { x: 0.8, y: 0.65, w: 0.12, h: 0.15 },
-        // Greenland
-        { x: 0.3, y: 0.1, w: 0.06, h: 0.08 },
+        { x: 0.15, y: 0.25, w: 0.2, h: 0.3 }, // North America
+        { x: 0.25, y: 0.55, w: 0.1, h: 0.25 }, // South America
+        { x: 0.45, y: 0.2, w: 0.08, h: 0.15 }, // Europe
+        { x: 0.45, y: 0.35, w: 0.12, h: 0.3 }, // Africa
+        { x: 0.65, y: 0.15, w: 0.25, h: 0.4 }, // Asia
+        { x: 0.8, y: 0.65, w: 0.12, h: 0.15 }, // Australia
+        { x: 0.3, y: 0.1, w: 0.06, h: 0.08 }, // Greenland
       ];
 
       continents.forEach((cont) => {
@@ -127,37 +166,26 @@ const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
         context.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, 2 * Math.PI);
         context.fill();
 
-        // Add coastal variation for more realistic look
-        if (theme === "dark") {
-          context.fillStyle = "#16a34a"; // Slightly different green for variation
-          for (let i = 0; i < 3; i++) {
+        // Add coastal variation (reduced for minimal style)
+        if (mapStyle !== "minimal") {
+          context.fillStyle = coastalColor;
+          const detailCount = mapStyle === "neon" ? 5 : 4;
+          for (let i = 0; i < detailCount; i++) {
             const vx = x + Math.random() * w;
             const vy = y + Math.random() * h;
-            const vr = Math.random() * 20 + 5;
+            const vr = Math.random() * (mapStyle === "neon" ? 30 : 25) + 8;
             context.beginPath();
             context.arc(vx, vy, vr, 0, 2 * Math.PI);
             context.fill();
           }
-          context.fillStyle = landColor; // Reset to main land color
-        } else {
-          // Light theme coastal details
-          context.fillStyle = "#047857"; // Darker green for contrast
-          for (let i = 0; i < 4; i++) {
-            const vx = x + Math.random() * w;
-            const vy = y + Math.random() * h;
-            const vr = Math.random() * 25 + 8;
-            context.beginPath();
-            context.arc(vx, vy, vr, 0, 2 * Math.PI);
-            context.fill();
-          }
-          context.fillStyle = landColor; // Reset to main land color
+          context.fillStyle = landColor;
         }
       });
 
-      // Add atmospheric effects for both themes
-      if (theme === "dark") {
-        // Dark mode glow effect
-        const glowGradient = context.createRadialGradient(
+      // Add style-specific atmospheric effects
+      if (mapStyle === "neon") {
+        // Neon glow effect
+        const neonGradient = context.createRadialGradient(
           canvas.width / 2,
           canvas.height / 2,
           0,
@@ -165,81 +193,155 @@ const Earth: React.FC<{ theme: "dark" | "light" }> = ({ theme }) => {
           canvas.height / 2,
           canvas.width / 2
         );
-        glowGradient.addColorStop(0, "rgba(59, 130, 246, 0.1)");
-        glowGradient.addColorStop(0.7, "rgba(59, 130, 246, 0.05)");
-        glowGradient.addColorStop(1, "rgba(59, 130, 246, 0.2)");
+        neonGradient.addColorStop(0, "rgba(99, 102, 241, 0.2)");
+        neonGradient.addColorStop(0.7, "rgba(147, 51, 234, 0.1)");
+        neonGradient.addColorStop(1, "rgba(236, 72, 153, 0.3)");
 
-        context.fillStyle = glowGradient;
+        context.fillStyle = neonGradient;
         context.globalCompositeOperation = "screen";
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalCompositeOperation = "source-over";
-      } else {
-        // Light mode atmospheric effect
-        const lightGradient = context.createRadialGradient(
-          canvas.width / 2,
-          canvas.height / 2,
-          0,
-          canvas.width / 2,
-          canvas.height / 2,
-          canvas.width / 2
-        );
-        lightGradient.addColorStop(0, "rgba(255, 255, 255, 0.1)");
-        lightGradient.addColorStop(0.6, "rgba(255, 255, 255, 0.05)");
-        lightGradient.addColorStop(1, "rgba(14, 165, 233, 0.1)");
 
-        context.fillStyle = lightGradient;
-        context.globalCompositeOperation = "overlay";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.globalCompositeOperation = "source-over";
+        // Add neon grid lines
+        context.strokeStyle = "rgba(0, 255, 136, 0.3)";
+        context.lineWidth = 2;
+        context.setLineDash([10, 5]);
 
-        // Add subtle cloud patterns for light mode
-        context.fillStyle = "rgba(255, 255, 255, 0.15)";
-        for (let i = 0; i < 15; i++) {
-          const cx = Math.random() * canvas.width;
-          const cy = Math.random() * canvas.height;
-          const radius = Math.random() * 80 + 40;
+        // Latitude lines
+        for (let i = 1; i < 4; i++) {
+          const y = (canvas.height / 4) * i;
           context.beginPath();
-          context.arc(cx, cy, radius, 0, 2 * Math.PI);
-          context.fill();
+          context.moveTo(0, y);
+          context.lineTo(canvas.width, y);
+          context.stroke();
+        }
+
+        // Longitude lines
+        for (let i = 1; i < 8; i++) {
+          const x = (canvas.width / 8) * i;
+          context.beginPath();
+          context.moveTo(x, 0);
+          context.lineTo(x, canvas.height);
+          context.stroke();
+        }
+
+        context.setLineDash([]); // Reset line dash
+      } else if (mapStyle === "realistic") {
+        // Realistic atmospheric effects (existing implementation)
+        if (theme === "dark") {
+          const glowGradient = context.createRadialGradient(
+            canvas.width / 2,
+            canvas.height / 2,
+            0,
+            canvas.width / 2,
+            canvas.height / 2,
+            canvas.width / 2
+          );
+          glowGradient.addColorStop(0, "rgba(59, 130, 246, 0.1)");
+          glowGradient.addColorStop(0.7, "rgba(59, 130, 246, 0.05)");
+          glowGradient.addColorStop(1, "rgba(59, 130, 246, 0.2)");
+
+          context.fillStyle = glowGradient;
+          context.globalCompositeOperation = "screen";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.globalCompositeOperation = "source-over";
+        } else {
+          const lightGradient = context.createRadialGradient(
+            canvas.width / 2,
+            canvas.height / 2,
+            0,
+            canvas.width / 2,
+            canvas.height / 2,
+            canvas.width / 2
+          );
+          lightGradient.addColorStop(0, "rgba(255, 255, 255, 0.1)");
+          lightGradient.addColorStop(0.6, "rgba(255, 255, 255, 0.05)");
+          lightGradient.addColorStop(1, "rgba(14, 165, 233, 0.1)");
+
+          context.fillStyle = lightGradient;
+          context.globalCompositeOperation = "overlay";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.globalCompositeOperation = "source-over";
+
+          // Add cloud patterns
+          context.fillStyle = "rgba(255, 255, 255, 0.15)";
+          for (let i = 0; i < 15; i++) {
+            const cx = Math.random() * canvas.width;
+            const cy = Math.random() * canvas.height;
+            const radius = Math.random() * 80 + 40;
+            context.beginPath();
+            context.arc(cx, cy, radius, 0, 2 * Math.PI);
+            context.fill();
+          }
         }
       }
+      // Minimal style has no additional effects for clean look
     }
 
     return new THREE.CanvasTexture(canvas);
-  }, [theme]);
+  }, [theme, mapStyle]);
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.02; // Slower rotation
+      // Adjust rotation speed based on style
+      const rotationSpeed =
+        mapStyle === "neon" ? 0.03 : mapStyle === "minimal" ? 0.01 : 0.02;
+      meshRef.current.rotation.y = state.clock.elapsedTime * rotationSpeed;
     }
   });
 
-  return (
-    <Sphere ref={meshRef} args={[1, 64, 32]}>
-      <meshStandardMaterial
-        map={texture}
-        transparent
-        opacity={theme === "dark" ? 0.95 : 0.92}
-        roughness={theme === "dark" ? 0.6 : 0.7}
-        metalness={theme === "dark" ? 0.2 : 0.15}
-        emissive={
+  // Style-specific material properties
+  const getMaterialProps = () => {
+    if (mapStyle === "neon") {
+      return {
+        opacity: 0.98,
+        roughness: 0.2,
+        metalness: 0.8,
+        emissive:
+          theme === "dark"
+            ? new THREE.Color("#001133")
+            : new THREE.Color("#000022"),
+        emissiveIntensity: 0.3,
+      };
+    } else if (mapStyle === "minimal") {
+      return {
+        opacity: 0.85,
+        roughness: 0.9,
+        metalness: 0.0,
+        emissive: new THREE.Color("#000000"),
+        emissiveIntensity: 0,
+      };
+    } else {
+      return {
+        opacity: theme === "dark" ? 0.95 : 0.92,
+        roughness: theme === "dark" ? 0.6 : 0.7,
+        metalness: theme === "dark" ? 0.2 : 0.15,
+        emissive:
           theme === "dark"
             ? new THREE.Color("#001122")
-            : new THREE.Color("#000308")
-        }
-        emissiveIntensity={theme === "dark" ? 0.1 : 0.05}
-      />
+            : new THREE.Color("#000308"),
+        emissiveIntensity: theme === "dark" ? 0.1 : 0.05,
+      };
+    }
+  };
+
+  const materialProps = getMaterialProps();
+
+  return (
+    <Sphere ref={meshRef} args={[1, 64, 32]}>
+      <meshStandardMaterial map={texture} transparent {...materialProps} />
     </Sphere>
   );
 };
 
-// Enhanced Exchange marker component
+// Enhanced Exchange marker component with style variations
 const ExchangeMarker: React.FC<{
   exchange: ExchangeLocation;
   isFiltered: boolean;
+  mapStyle?: "realistic" | "neon" | "minimal";
   onClick: (exchange: ExchangeLocation) => void;
   onHover: (exchange: ExchangeLocation | null) => void;
-}> = ({ exchange, isFiltered, onClick, onHover }) => {
+}> = ({ exchange, isFiltered, mapStyle, onClick, onHover }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -255,19 +357,80 @@ const ExchangeMarker: React.FC<{
 
   const color = PROVIDER_COLORS[exchange.cloudProvider];
 
+  // Style-specific marker properties
+  const getMarkerProps = () => {
+    if (mapStyle === "neon") {
+      return {
+        size: 0.03,
+        geometry: "octahedron" as const,
+        emissiveIntensity: hovered ? 0.8 : 0.5,
+        roughness: 0.1,
+        metalness: 0.9,
+      };
+    } else if (mapStyle === "minimal") {
+      return {
+        size: 0.02,
+        geometry: "sphere" as const,
+        emissiveIntensity: 0,
+        roughness: 0.8,
+        metalness: 0.2,
+      };
+    } else {
+      return {
+        size: 0.025,
+        geometry: "box" as const,
+        emissiveIntensity: hovered ? 0.5 : 0.3,
+        roughness: 0.3,
+        metalness: 0.7,
+      };
+    }
+  };
+
+  const markerProps = getMarkerProps();
+
   useFrame((state) => {
     if (meshRef.current) {
       const scale = hovered ? 1.3 : 1;
       meshRef.current.scale.setScalar(scale);
-      meshRef.current.rotation.y = state.clock.elapsedTime * (hovered ? 4 : 2);
 
-      // Add pulsing effect
-      const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.1 + 1;
-      meshRef.current.scale.multiplyScalar(pulse);
+      // Style-specific animations
+      if (mapStyle === "neon") {
+        meshRef.current.rotation.y =
+          state.clock.elapsedTime * (hovered ? 6 : 3);
+        meshRef.current.rotation.x = state.clock.elapsedTime * 2;
+        // Neon pulsing effect
+        const pulse = Math.sin(state.clock.elapsedTime * 4) * 0.2 + 1;
+        meshRef.current.scale.multiplyScalar(pulse);
+      } else if (mapStyle === "minimal") {
+        // Minimal style has subtle animations
+        const subtlePulse = Math.sin(state.clock.elapsedTime * 2) * 0.05 + 1;
+        meshRef.current.scale.multiplyScalar(subtlePulse);
+      } else {
+        // Realistic style
+        meshRef.current.rotation.y =
+          state.clock.elapsedTime * (hovered ? 4 : 2);
+        const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.1 + 1;
+        meshRef.current.scale.multiplyScalar(pulse);
+      }
     }
   });
 
   if (!isFiltered) return null;
+
+  const renderGeometry = () => {
+    switch (markerProps.geometry) {
+      case "octahedron":
+        return <octahedronGeometry args={[markerProps.size, 0]} />;
+      case "sphere":
+        return <sphereGeometry args={[markerProps.size, 8, 6]} />;
+      default:
+        return (
+          <boxGeometry
+            args={[markerProps.size, markerProps.size, markerProps.size]}
+          />
+        );
+    }
+  };
 
   return (
     <group position={position}>
@@ -284,59 +447,92 @@ const ExchangeMarker: React.FC<{
           onHover(null);
         }}
       >
-        <boxGeometry args={[0.025, 0.025, 0.025]} />
+        {renderGeometry()}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={hovered ? 0.5 : 0.3}
-          roughness={0.3}
-          metalness={0.7}
+          emissiveIntensity={markerProps.emissiveIntensity}
+          roughness={markerProps.roughness}
+          metalness={markerProps.metalness}
         />
       </mesh>
 
-      {/* Glowing ring around marker */}
-      <mesh position={[0, 0, 0]}>
-        <ringGeometry args={[0.02, 0.03, 16]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={hovered ? 0.6 : 0.3}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      {/* Style-specific effects */}
+      {mapStyle === "neon" && (
+        <>
+          {/* Neon ring effect */}
+          <mesh position={[0, 0, 0]}>
+            <ringGeometry args={[0.025, 0.035, 16]} />
+            <meshBasicMaterial
+              color={color}
+              transparent
+              opacity={hovered ? 0.8 : 0.4}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
 
-      {/* Status indicator */}
-      <mesh position={[0, 0.04, 0]}>
-        <sphereGeometry args={[0.005, 8, 6]} />
-        <meshBasicMaterial
-          color={
-            exchange.status === "online"
-              ? "#10b981"
-              : exchange.status === "maintenance"
-              ? "#f59e0b"
-              : "#ef4444"
-          }
-        />
-      </mesh>
+          {/* Outer glow ring */}
+          <mesh position={[0, 0, 0]}>
+            <ringGeometry args={[0.035, 0.05, 16]} />
+            <meshBasicMaterial
+              color={color}
+              transparent
+              opacity={hovered ? 0.4 : 0.2}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </>
+      )}
 
-      {/* Text label */}
+      {mapStyle === "realistic" && (
+        <>
+          {/* Glowing ring around marker */}
+          <mesh position={[0, 0, 0]}>
+            <ringGeometry args={[0.02, 0.03, 16]} />
+            <meshBasicMaterial
+              color={color}
+              transparent
+              opacity={hovered ? 0.6 : 0.3}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+
+          {/* Status indicator */}
+          <mesh position={[0, 0.04, 0]}>
+            <sphereGeometry args={[0.005, 8, 6]} />
+            <meshBasicMaterial
+              color={
+                exchange.status === "online"
+                  ? "#10b981"
+                  : exchange.status === "maintenance"
+                  ? "#f59e0b"
+                  : "#ef4444"
+              }
+            />
+          </mesh>
+        </>
+      )}
+
+      {/* Minimal style has no extra effects for clean look */}
+
+      {/* Text label with style-appropriate styling */}
       {hovered && (
         <Billboard position={[0, 0.08, 0]}>
           <Text
-            fontSize={0.025}
-            color={color}
+            fontSize={mapStyle === "neon" ? 0.03 : 0.025}
+            color={mapStyle === "neon" ? "#00ff88" : color}
             anchorX="center"
             anchorY="bottom"
-            outlineWidth={theme === "dark" ? 0.002 : 0.003}
-            outlineColor={theme === "dark" ? "#000000" : "#ffffff"}
+            outlineWidth={mapStyle === "minimal" ? 0 : 0.003}
+            outlineColor={mapStyle === "neon" ? "#000033" : "#000000"}
           >
             {exchange.displayName}
             {"\n"}
             <Text
-              fontSize={0.015}
-              color={theme === "dark" ? "#ffffff" : "#1f2937"}
-              outlineWidth={theme === "dark" ? 0.001 : 0.002}
-              outlineColor={theme === "dark" ? "#000000" : "#ffffff"}
+              fontSize={mapStyle === "neon" ? 0.018 : 0.015}
+              color={mapStyle === "neon" ? "#00ff88" : "#ffffff"}
+              outlineWidth={mapStyle === "minimal" ? 0 : 0.002}
+              outlineColor={mapStyle === "neon" ? "#000033" : "#000000"}
             >
               {exchange.region} • {exchange.status}
             </Text>
@@ -508,6 +704,7 @@ const Scene3D: React.FC<Map3DProps> = ({
   filters,
   visualizationSettings,
   theme,
+  mapStyle,
   onExchangeClick,
   onExchangeHover,
 }) => {
@@ -603,7 +800,7 @@ const Scene3D: React.FC<Map3DProps> = ({
       )}
 
       {/* Earth */}
-      <Earth theme={theme} />
+      <Earth theme={theme} mapStyle={mapStyle} />
 
       {/* Exchange markers */}
       {filteredExchanges.map((exchange) => (
@@ -611,6 +808,7 @@ const Scene3D: React.FC<Map3DProps> = ({
           key={exchange.id}
           exchange={exchange}
           isFiltered={true}
+          mapStyle={mapStyle}
           onClick={onExchangeClick || (() => {})}
           onHover={onExchangeHover || (() => {})}
         />
@@ -644,7 +842,6 @@ const Scene3D: React.FC<Map3DProps> = ({
   );
 };
 
-// Main Map3D component
 const Map3D: React.FC<Map3DProps> = (props) => {
   // Enhanced background colors for optimal contrast in both themes
   const backgroundColor = useMemo(() => {
