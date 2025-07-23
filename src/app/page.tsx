@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { MapPin, BarChart3, RefreshCw } from "lucide-react";
+import { MapPin, BarChart3, RefreshCw, X } from "lucide-react";
 import Map3D from "../components/Map3D";
 import ControlPanel from "@/components/ControlPanel";
 import LatencyChart from "@/components/LatencyChart";
@@ -208,7 +208,7 @@ export default function CryptoLatencyVisualizer() {
           />
 
           {/* Legend */}
-          <Legend className="fixed bottom-10 left-2 z-30 w-60" />
+          <Legend className="fixed bottom-10 left-2 z-30 w-60 max-w-sm" />
 
           {/* Metrics Dashboard */}
           <MetricsDashboard
@@ -217,21 +217,23 @@ export default function CryptoLatencyVisualizer() {
             className="fixed bottom-10 right-2 z-30 w-96"
           />
 
-          <PerformanceMonitor className="fixed top-22 left-2 z-30 w-60" />
+          <PerformanceMonitor className="fixed top-22 left-2 z-30 w-60 max-w-sm" />
 
           {/* Selected Exchange Info */}
           {selectedExchange && (
-            <Card className="fixed top-20  left-4 z-30 p-4 max-w-sm">
+            <Card className="fixed top-22 left-2 z-30 p-4 pt-3 w-60 max-w-sm">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold">
                   {selectedExchange.displayName}
                 </h4>
-                <button
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={() => setSelectedExchange(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 rounded-full"
                 >
-                  ×
-                </button>
+                  <X />
+                </Button>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -270,7 +272,7 @@ export default function CryptoLatencyVisualizer() {
 
           {/* Hovered Exchange Tooltip */}
           {hoveredExchange && (
-            <Card className="fixed top-32 left-4 z-40 p-3 pointer-events-none">
+            <Card className="fixed top-22 left-2 z-40 p-3 w-60 max-w-sm pointer-events-none">
               <p className="font-medium text-sm">
                 {hoveredExchange.displayName}
               </p>

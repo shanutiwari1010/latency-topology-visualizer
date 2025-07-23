@@ -1,11 +1,13 @@
 // src/components/Legend.tsx
-'use client';
+"use client";
 
-import React from 'react';
-import { Info, Zap, Globe, Cloud } from 'lucide-react';
-import { PROVIDER_COLORS, LATENCY_QUALITY_COLORS } from '@/constants/exchangeLocations';
-import { Card } from './ui/card';
-
+import React from "react";
+import { Info, Zap, Globe, Cloud } from "lucide-react";
+import {
+  PROVIDER_COLORS,
+  LATENCY_QUALITY_COLORS,
+} from "@/constants/exchangeLocations";
+import { Card } from "./ui/card";
 
 interface LegendProps {
   className?: string;
@@ -18,8 +20,8 @@ const Legend: React.FC<LegendProps> = ({ className }) => {
         <Info className="w-4 h-4 mr-2 text-blue-600" />
         <h4 className="font-semibold text-sm">Legend</h4>
       </div>
-      
-      <div className="space-y-4 text-sm">
+
+      <div className="space-y-4 text-sm -mt-2">
         {/* Cloud Providers */}
         <div>
           <div className="flex items-center mb-2">
@@ -54,10 +56,10 @@ const Legend: React.FC<LegendProps> = ({ className }) => {
                 />
                 <span className="text-xs capitalize">{quality}</span>
                 <span className="text-xs text-gray-500 ml-1">
-                  {quality === 'excellent' && '(≤20ms)'}
-                  {quality === 'good' && '(21-50ms)'}
-                  {quality === 'fair' && '(51-100ms)'}
-                  {quality === 'poor' && '(>100ms)'}
+                  {quality === "excellent" && "(≤20ms)"}
+                  {quality === "good" && "(21-50ms)"}
+                  {quality === "fair" && "(51-100ms)"}
+                  {quality === "poor" && "(>100ms)"}
                 </span>
               </div>
             ))}
@@ -91,4 +93,3 @@ const Legend: React.FC<LegendProps> = ({ className }) => {
 };
 
 export default Legend;
-
