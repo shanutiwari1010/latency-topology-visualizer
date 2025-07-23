@@ -105,11 +105,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
   if (!isExpanded) {
     return (
-      <Card className="fixed top-22 right-3 p-2 z-50">
-        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(true)}>
+      <div className="fixed top-22 right-3 p-2 z-50">
+        <Button variant="outline" size="sm" onClick={() => setIsExpanded(true)}>
           <Settings className="w-4 h-4" />
         </Button>
-      </Card>
+      </div>
     );
   }
 
