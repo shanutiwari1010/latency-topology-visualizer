@@ -1,31 +1,32 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { MapPin, BarChart3, RefreshCw } from 'lucide-react';
-import Map3D from '../components/Map3D';
-import ControlPanel from '@/components/ControlPanel';
-import LatencyChart from '@/components/LatencyChart';
-import Legend from '@/components/Legend';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import MetricsDashboard from '@/components/MetricsDashboard';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useLatencyData } from '@/hooks/useLatencyData';
-import { useExchangeData } from '@/hooks/useExchangeData';
+import React, { useState, useCallback, useEffect } from "react";
+import { MapPin, BarChart3, RefreshCw } from "lucide-react";
+import Map3D from "../components/Map3D";
+import ControlPanel from "@/components/ControlPanel";
+import LatencyChart from "@/components/LatencyChart";
+import Legend from "@/components/Legend";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import MetricsDashboard from "@/components/MetricsDashboard";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useLatencyData } from "@/hooks/useLatencyData";
+import { useExchangeData } from "@/hooks/useExchangeData";
 import {
   FilterOptions,
   VisualizationSettings,
   ThemeSettings,
   TimeRange,
-  ExchangeLocation
-} from '@/types';
-import { createLatencyConnections } from '@/lib/exchangeData';
+  ExchangeLocation,
+} from "@/types";
+import { createLatencyConnections } from "@/lib/exchangeData";
+import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 
 export default function CryptoLatencyVisualizer() {
   // Theme and settings state
   const [theme, setTheme] = useState<ThemeSettings>({
-    mode: 'dark',
-    mapStyle: 'realistic'
+    mode: "dark",
+    mapStyle: "realistic",
   });
 
   const [filters, setFilters] = useState<FilterOptions>({
@@ -34,20 +35,23 @@ export default function CryptoLatencyVisualizer() {
     latencyRange: { min: 0, max: 500 },
     showRealTime: true,
     showHistorical: false,
-    showRegions: true
+    showRegions: true,
   });
 
-  const [visualizationSettings, setVisualizationSettings] = useState<VisualizationSettings>({
-    showLatencyHeatmap: false,
-    showNetworkTopology: true,
-    showDataFlow: true,
-    animationSpeed: 1.0,
-    particleCount: 50
-  });
+  const [visualizationSettings, setVisualizationSettings] =
+    useState<VisualizationSettings>({
+      showLatencyHeatmap: false,
+      showNetworkTopology: true,
+      showDataFlow: true,
+      animationSpeed: 1.0,
+      particleCount: 50,
+    });
 
   // Chart state
-  const [selectedPair, setSelectedPair] = useState<{ source: string; target: string } | undefined>();
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
+  const [selectedPair, setSelectedPair] = useState<
+    { source: string; target: string } | undefined
+  >();
+  const [timeRange, setTimeRange] = useState<TimeRange>("24h");
   const [showChart, setShowChart] = useState(false);
 
   // Data hooks
@@ -58,7 +62,7 @@ export default function CryptoLatencyVisualizer() {
     isLoading,
     error,
     refreshData,
-    lastUpdated
+    lastUpdated,
   } = useLatencyData(10000); // Refresh every 10 seconds
 
   const {
@@ -69,36 +73,43 @@ export default function CryptoLatencyVisualizer() {
     selectedExchange,
     setSelectedExchange,
     hoveredExchange,
-    setHoveredExchange
+    setHoveredExchange,
   } = useExchangeData(filters);
 
   // Apply theme to document
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme.mode === 'dark');
+    document.documentElement.classList.toggle("dark", theme.mode === "dark");
   }, [theme.mode]);
 
   // Handle exchange click
-  const handleExchangeClick = useCallback((exchange: ExchangeLocation) => {
-    setSelectedExchange(exchange);
-    
-    // Find a connection involving this exchange for the chart
-    const connection = filteredConnections.find(
-      conn => conn.source.id === exchange.id || conn.target.id === exchange.id
-    );
-    
-    if (connection) {
-      setSelectedPair({
-        source: connection.source.id,
-        target: connection.target.id
-      });
-      setShowChart(true);
-    }
-  }, [filteredConnections, setSelectedExchange]);
+  const handleExchangeClick = useCallback(
+    (exchange: ExchangeLocation) => {
+      setSelectedExchange(exchange);
+
+      // Find a connection involving this exchange for the chart
+      const connection = filteredConnections.find(
+        (conn) =>
+          conn.source.id === exchange.id || conn.target.id === exchange.id
+      );
+
+      if (connection) {
+        setSelectedPair({
+          source: connection.source.id,
+          target: connection.target.id,
+        });
+        setShowChart(true);
+      }
+    },
+    [filteredConnections, setSelectedExchange]
+  );
 
   // Handle exchange hover
-  const handleExchangeHover = useCallback((exchange: ExchangeLocation | null) => {
-    setHoveredExchange(exchange);
-  }, [setHoveredExchange]);
+  const handleExchangeHover = useCallback(
+    (exchange: ExchangeLocation | null) => {
+      setHoveredExchange(exchange);
+    },
+    [setHoveredExchange]
+  );
 
   // Error state
   if (error) {
@@ -120,11 +131,13 @@ export default function CryptoLatencyVisualizer() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${
-      theme.mode === 'dark' 
-        ? 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900' 
-        : 'bg-gradient-to-br from-blue-50 via-white to-blue-50'
-    }`}>
+    <div
+      className={`min-h-screen transition-colors duration-200 ${
+        theme.mode === "dark"
+          ? "bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900"
+          : "bg-gradient-to-br from-blue-50 via-white to-blue-50"
+      }`}
+    >
       {/* Header */}
       <header className="relative z-40 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
@@ -141,7 +154,7 @@ export default function CryptoLatencyVisualizer() {
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -149,10 +162,12 @@ export default function CryptoLatencyVisualizer() {
               onClick={() => setShowChart(!showChart)}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              {showChart ? 'Hide' : 'Show'} Chart
+              {showChart ? "Hide" : "Show"} Chart
             </Button>
             <Button variant="outline" size="sm" onClick={refreshData}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
           </div>
@@ -181,7 +196,7 @@ export default function CryptoLatencyVisualizer() {
             onExchangeClick={handleExchangeClick}
             onExchangeHover={handleExchangeHover}
           />
-          
+
           {/* Control Panel */}
           <ControlPanel
             filters={filters}
@@ -191,22 +206,26 @@ export default function CryptoLatencyVisualizer() {
             onVisualizationChange={setVisualizationSettings}
             onThemeChange={setTheme}
           />
-          
+
           {/* Legend */}
-          <Legend className="fixed bottom-4 left-4 z-30" />
-          
+          <Legend className="fixed bottom-10 left-2 z-30 w-60" />
+
           {/* Metrics Dashboard */}
           <MetricsDashboard
             metrics={metrics}
             isLoading={isLoading}
-            className="fixed bottom-4 right-4 z-30 w-80"
+            className="fixed bottom-10 right-2 z-30 w-96"
           />
-          
+
+          <PerformanceMonitor className="fixed top-22 left-2 z-30 w-60" />
+
           {/* Selected Exchange Info */}
           {selectedExchange && (
-            <Card className="fixed top-20 left-4 z-30 p-4 max-w-sm">
+            <Card className="fixed top-20  left-4 z-30 p-4 max-w-sm">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold">{selectedExchange.displayName}</h4>
+                <h4 className="font-semibold">
+                  {selectedExchange.displayName}
+                </h4>
                 <button
                   onClick={() => setSelectedExchange(null)}
                   className="text-gray-400 hover:text-gray-600"
@@ -217,7 +236,9 @@ export default function CryptoLatencyVisualizer() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Provider:</span>
-                  <span className="font-medium">{selectedExchange.cloudProvider}</span>
+                  <span className="font-medium">
+                    {selectedExchange.cloudProvider}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Region:</span>
@@ -225,15 +246,21 @@ export default function CryptoLatencyVisualizer() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Servers:</span>
-                  <span className="font-medium">{selectedExchange.serverCount}</span>
+                  <span className="font-medium">
+                    {selectedExchange.serverCount}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
-                  <span className={`font-medium capitalize ${
-                    selectedExchange.status === 'online' ? 'text-green-600' :
-                    selectedExchange.status === 'maintenance' ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
+                  <span
+                    className={`font-medium capitalize ${
+                      selectedExchange.status === "online"
+                        ? "text-green-600"
+                        : selectedExchange.status === "maintenance"
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {selectedExchange.status}
                   </span>
                 </div>
@@ -244,7 +271,9 @@ export default function CryptoLatencyVisualizer() {
           {/* Hovered Exchange Tooltip */}
           {hoveredExchange && (
             <Card className="fixed top-32 left-4 z-40 p-3 pointer-events-none">
-              <p className="font-medium text-sm">{hoveredExchange.displayName}</p>
+              <p className="font-medium text-sm">
+                {hoveredExchange.displayName}
+              </p>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 {hoveredExchange.cloudProvider} • {hoveredExchange.region}
               </p>
@@ -254,7 +283,7 @@ export default function CryptoLatencyVisualizer() {
 
         {/* Latency Chart Panel */}
         {showChart && (
-          <div className="fixed inset-x-4 bottom-4 z-30 h-96">
+          <div className="fixed inset-x-2 bottom-9 z-30 h-96">
             <LatencyChart
               data={historicalData}
               selectedPair={selectedPair}
@@ -271,13 +300,17 @@ export default function CryptoLatencyVisualizer() {
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/50 backdrop-blur-sm text-white text-xs p-2">
         <div className="flex items-center justify-between max-w-screen-xl mx-auto">
           <div className="flex items-center space-x-4">
-            <span>Exchanges: {filteredExchanges.length}/{exchanges.length}</span>
+            <span>
+              Exchanges: {filteredExchanges.length}/{exchanges.length}
+            </span>
             <span>Connections: {filteredConnections.length}</span>
             <span>Avg Latency: {metrics.averageLatency.toFixed(1)}ms</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>Live • Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span>
+            <span>
+              Live • Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </span>
           </div>
         </div>
       </div>

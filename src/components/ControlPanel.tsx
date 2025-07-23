@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Settings, Search, Filter, Eye, EyeOff, Sun, Moon } from 'lucide-react';
-import { FilterOptions, VisualizationSettings, ThemeSettings } from '@/types';
-import { EXCHANGE_LOCATIONS, PROVIDER_COLORS } from '@/constants/exchangeLocations';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Select } from './ui/select';
-import { Switch } from './ui/switch';
+import React, { useState } from "react";
+import { Settings, Search, Filter, Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { FilterOptions, VisualizationSettings, ThemeSettings } from "@/types";
+import {
+  EXCHANGE_LOCATIONS,
+  PROVIDER_COLORS,
+} from "@/constants/exchangeLocations";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Select } from "./ui/select";
+import { Switch } from "./ui/switch";
 
 interface ControlPanelProps {
   filters: FilterOptions;
@@ -24,45 +27,52 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   theme,
   onFiltersChange,
   onVisualizationChange,
-  onThemeChange
+  onThemeChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'filters' | 'visualization' | 'theme'>('filters');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "filters" | "visualization" | "theme"
+  >("filters");
 
   // Get unique exchange names
-  const uniqueExchanges = Array.from(new Set(EXCHANGE_LOCATIONS.map(loc => loc.name)));
+  const uniqueExchanges = Array.from(
+    new Set(EXCHANGE_LOCATIONS.map((loc) => loc.name))
+  );
 
   const handleFilterChange = (key: keyof FilterOptions, value: any) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
-  const handleVisualizationChange = (key: keyof VisualizationSettings, value: any) => {
+  const handleVisualizationChange = (
+    key: keyof VisualizationSettings,
+    value: any
+  ) => {
     onVisualizationChange({ ...visualizationSettings, [key]: value });
   };
 
-  const handleLatencyRangeChange = (type: 'min' | 'max', value: number) => {
+  const handleLatencyRangeChange = (type: "min" | "max", value: number) => {
     onFiltersChange({
       ...filters,
       latencyRange: {
         ...filters.latencyRange,
-        [type]: value
-      }
+        [type]: value,
+      },
     });
   };
 
   const toggleExchange = (exchange: string) => {
     const newExchanges = filters.exchanges.includes(exchange)
-      ? filters.exchanges.filter(e => e !== exchange)
+      ? filters.exchanges.filter((e) => e !== exchange)
       : [...filters.exchanges, exchange];
-    handleFilterChange('exchanges', newExchanges);
+    handleFilterChange("exchanges", newExchanges);
   };
 
-  const toggleCloudProvider = (provider: 'AWS' | 'GCP' | 'Azure') => {
+  const toggleCloudProvider = (provider: "AWS" | "GCP" | "Azure") => {
     const newProviders = filters.cloudProviders.includes(provider)
-      ? filters.cloudProviders.filter(p => p !== provider)
+      ? filters.cloudProviders.filter((p) => p !== provider)
       : [...filters.cloudProviders, provider];
-    handleFilterChange('cloudProviders', newProviders);
+    handleFilterChange("cloudProviders", newProviders);
   };
 
   const resetFilters = () => {
@@ -72,18 +82,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       latencyRange: { min: 0, max: 500 },
       showRealTime: true,
       showHistorical: false,
-      showRegions: true
+      showRegions: true,
     });
   };
 
   if (!isExpanded) {
     return (
-      <Card className="fixed top-4 right-4 p-2 z-50">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(true)}
-        >
+      <Card className="fixed top-22 right-3 p-2 z-50">
+        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(true)}>
           <Settings className="w-4 h-4" />
         </Button>
       </Card>
@@ -91,28 +97,23 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   }
 
   return (
-    <Card className="fixed top-4 right-4 w-80 max-h-[80vh] overflow-y-auto z-50 p-4">
-      <div className="flex items-center justify-between mb-4">
+    <Card className="fixed top-22 right-2 w-96 max-h-[60vh] overflow-y-auto z-50 p-4">
+      <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Control Panel</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(false)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(false)}>
           <EyeOff className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 mb-4 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
         {[
-          { key: 'filters', label: 'Filters', icon: Filter },
-          { key: 'visualization', label: 'Visual', icon: Eye },
-          { key: 'theme', label: 'Theme', icon: Sun }
-        ].map(tab => (
+          { key: "filters", label: "Filters", icon: Filter },
+          { key: "visualization", label: "Visual", icon: Eye },
+          { key: "theme", label: "Theme", icon: Sun },
+        ].map((tab) => (
           <Button
             key={tab.key}
-            variant={activeTab === tab.key ? 'default' : 'ghost'}
+            variant={activeTab === tab.key ? "default" : "ghost"}
             size="sm"
             className="flex-1"
             onClick={() => setActiveTab(tab.key as any)}
@@ -124,7 +125,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
 
       {/* Search Bar */}
-      {activeTab === 'filters' && (
+      {activeTab === "filters" && (
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
@@ -138,15 +139,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       )}
 
       {/* Filters Tab */}
-      {activeTab === 'filters' && (
+      {activeTab === "filters" && (
         <div className="space-y-4">
           {/* Exchange Selection */}
           <div>
             <label className="block text-sm font-medium mb-2">Exchanges</label>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {uniqueExchanges
-                .filter(exchange => exchange.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map(exchange => (
+                .filter((exchange) =>
+                  exchange.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((exchange) => (
                   <div key={exchange} className="flex items-center">
                     <input
                       type="checkbox"
@@ -155,7 +158,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       onChange={() => toggleExchange(exchange)}
                       className="mr-2"
                     />
-                    <label htmlFor={`exchange-${exchange}`} className="text-sm capitalize">
+                    <label
+                      htmlFor={`exchange-${exchange}`}
+                      className="text-sm capitalize"
+                    >
                       {exchange}
                     </label>
                   </div>
@@ -165,9 +171,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
           {/* Cloud Provider Selection */}
           <div>
-            <label className="block text-sm font-medium mb-2">Cloud Providers</label>
+            <label className="block text-sm font-medium mb-2">
+              Cloud Providers
+            </label>
             <div className="space-y-2">
-              {(['AWS', 'GCP', 'Azure'] as const).map(provider => (
+              {(["AWS", "GCP", "Azure"] as const).map((provider) => (
                 <div key={provider} className="flex items-center">
                   <input
                     type="checkbox"
@@ -191,7 +199,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           {/* Latency Range */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Latency Range (ms): {filters.latencyRange.min} - {filters.latencyRange.max}
+              Latency Range (ms): {filters.latencyRange.min} -{" "}
+              {filters.latencyRange.max}
             </label>
             <div className="space-y-2">
               <div>
@@ -202,7 +211,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                   max="200"
                   step="5"
                   value={filters.latencyRange.min}
-                  onChange={(e) => handleLatencyRangeChange('min', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleLatencyRangeChange("min", parseInt(e.target.value))
+                  }
                   className="w-full"
                 />
               </div>
@@ -214,7 +225,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                   max="500"
                   step="10"
                   value={filters.latencyRange.max}
-                  onChange={(e) => handleLatencyRangeChange('max', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleLatencyRangeChange("max", parseInt(e.target.value))
+                  }
                   className="w-full"
                 />
               </div>
@@ -223,43 +236,48 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
           {/* Display Options */}
           <div>
-            <label className="block text-sm font-medium mb-2">Display Options</label>
+            <label className="block text-sm font-medium mb-2">
+              Display Options
+            </label>
             <div className="space-y-2">
               <Switch
                 checked={filters.showRealTime}
-                onCheckedChange={(checked) => handleFilterChange('showRealTime', checked)}
+                onCheckedChange={(checked) =>
+                  handleFilterChange("showRealTime", checked)
+                }
                 label="Real-time Connections"
               />
               <Switch
                 checked={filters.showHistorical}
-                onCheckedChange={(checked) => handleFilterChange('showHistorical', checked)}
+                onCheckedChange={(checked) =>
+                  handleFilterChange("showHistorical", checked)
+                }
                 label="Historical Data"
               />
               <Switch
                 checked={filters.showRegions}
-                onCheckedChange={(checked) => handleFilterChange('showRegions', checked)}
+                onCheckedChange={(checked) =>
+                  handleFilterChange("showRegions", checked)
+                }
                 label="Cloud Regions"
               />
             </div>
           </div>
 
           {/* Reset Filters */}
-          <Button
-            variant="outline"
-            onClick={resetFilters}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={resetFilters} className="w-full">
             Reset Filters
           </Button>
         </div>
       )}
 
       {/* Visualization Tab */}
-      {activeTab === 'visualization' && (
+      {activeTab === "visualization" && (
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Animation Speed: {visualizationSettings.animationSpeed.toFixed(1)}x
+              Animation Speed: {visualizationSettings.animationSpeed.toFixed(1)}
+              x
             </label>
             <input
               type="range"
@@ -267,7 +285,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               max="3"
               step="0.1"
               value={visualizationSettings.animationSpeed}
-              onChange={(e) => handleVisualizationChange('animationSpeed', parseFloat(e.target.value))}
+              onChange={(e) =>
+                handleVisualizationChange(
+                  "animationSpeed",
+                  parseFloat(e.target.value)
+                )
+              }
               className="w-full"
             />
           </div>
@@ -282,7 +305,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               max="100"
               step="5"
               value={visualizationSettings.particleCount}
-              onChange={(e) => handleVisualizationChange('particleCount', parseInt(e.target.value))}
+              onChange={(e) =>
+                handleVisualizationChange(
+                  "particleCount",
+                  parseInt(e.target.value)
+                )
+              }
               className="w-full"
             />
           </div>
@@ -290,17 +318,23 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <div className="space-y-2">
             <Switch
               checked={visualizationSettings.showLatencyHeatmap}
-              onCheckedChange={(checked) => handleVisualizationChange('showLatencyHeatmap', checked)}
+              onCheckedChange={(checked) =>
+                handleVisualizationChange("showLatencyHeatmap", checked)
+              }
               label="Latency Heatmap"
             />
             <Switch
               checked={visualizationSettings.showNetworkTopology}
-              onCheckedChange={(checked) => handleVisualizationChange('showNetworkTopology', checked)}
+              onCheckedChange={(checked) =>
+                handleVisualizationChange("showNetworkTopology", checked)
+              }
               label="Network Topology"
             />
             <Switch
               checked={visualizationSettings.showDataFlow}
-              onCheckedChange={(checked) => handleVisualizationChange('showDataFlow', checked)}
+              onCheckedChange={(checked) =>
+                handleVisualizationChange("showDataFlow", checked)
+              }
               label="Data Flow Animation"
             />
           </div>
@@ -308,22 +342,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       )}
 
       {/* Theme Tab */}
-      {activeTab === 'theme' && (
+      {activeTab === "theme" && (
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Theme Mode</label>
             <div className="flex space-x-2">
               <Button
-                variant={theme.mode === 'dark' ? 'default' : 'outline'}
-                onClick={() => onThemeChange({ ...theme, mode: 'dark' })}
+                variant={theme.mode === "dark" ? "default" : "outline"}
+                onClick={() => onThemeChange({ ...theme, mode: "dark" })}
                 className="flex-1"
               >
                 <Moon className="w-4 h-4 mr-1" />
                 Dark
               </Button>
               <Button
-                variant={theme.mode === 'light' ? 'default' : 'outline'}
-                onClick={() => onThemeChange({ ...theme, mode: 'light' })}
+                variant={theme.mode === "light" ? "default" : "outline"}
+                onClick={() => onThemeChange({ ...theme, mode: "light" })}
                 className="flex-1"
               >
                 <Sun className="w-4 h-4 mr-1" />
@@ -336,11 +370,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             <label className="block text-sm font-medium mb-2">Map Style</label>
             <Select
               value={theme.mapStyle}
-              onValueChange={(value) => onThemeChange({ ...theme, mapStyle: value as any })}
+              onValueChange={(value) =>
+                onThemeChange({ ...theme, mapStyle: value as any })
+              }
               options={[
-                { value: 'realistic', label: 'Realistic' },
-                { value: 'minimal', label: 'Minimal' },
-                { value: 'neon', label: 'Neon' }
+                { value: "realistic", label: "Realistic" },
+                { value: "minimal", label: "Minimal" },
+                { value: "neon", label: "Neon" },
               ]}
             />
           </div>
