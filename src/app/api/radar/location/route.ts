@@ -5,8 +5,7 @@ const API_KEY = process.env.CLOUDFLARE_API_KEY;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const type = searchParams.get("type") || "realtime";
-  const location = searchParams.get("location") || "US";
+  const code = searchParams.get("code");
 
   if (!API_KEY) {
     return NextResponse.json(
@@ -18,17 +17,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  let radarUrl = "";
-  if (type === "realtime") {
-    radarUrl = `${RADAR_API_BASE}/quality/speed/summary?location=${location}`;
-  } else if (type === "historical") {
-    radarUrl = `${RADAR_API_BASE}/quality/iqi/timeseries_groups?location=${location}&metric=latency&aggInterval=1d&dateRange=30d`;
-  } else {
+  if (!code) {
     return NextResponse.json(
-      { success: false, error: "Invalid type parameter" },
+      { success: false, error: "Missing 'code' query parameter" },
       { status: 400 }
     );
   }
+
+  const radarUrl = `${RADAR_API_BASE}/entities/locations/${code}`;
 
   try {
     const radarRes = await fetch(radarUrl, {
@@ -39,18 +35,17 @@ export async function GET(request: NextRequest) {
     });
     if (!radarRes.ok) {
       const text = await radarRes.text();
-      console.error("Radar API error:", radarUrl, radarRes.status, text);
+      console.error("Radar Location API error:", radarUrl, radarRes.status, text);
       return NextResponse.json(
         {
           success: false,
-          error: `Radar API error: ${radarRes.status}`,
+          error: `Radar Location API error: ${radarRes.status}`,
           details: text,
         },
         { status: radarRes.status }
       );
     }
     const data = await radarRes.json();
-    // Set CORS headers for localhost dev
     const response = NextResponse.json({ success: true, data });
     response.headers.set("Access-Control-Allow-Origin", "*");
     response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -60,7 +55,7 @@ export async function GET(request: NextRequest) {
     );
     return response;
   } catch (error) {
-    console.error("Internal server error:", error);
+    console.error("Internal server error (location):", error);
     return NextResponse.json(
       {
         success: false,
@@ -82,18 +77,4 @@ export async function OPTIONS() {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
-}
-
-async function fetchRegionMetadata(regionCode: string) {
-  const res = await fetch(`/api/radar/location?code=${regionCode}`);
-  const json = await res.json();
-  if (
-    !json.success ||
-    !json.data ||
-    !json.data.result ||
-    !json.data.result.location
-  ) {
-    throw new Error("Malformed location API response");
-  }
-  return json.data.result.location; // { code, name, latitude, longitude, ... }
-}
+} 
