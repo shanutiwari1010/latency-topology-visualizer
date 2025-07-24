@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -6,6 +5,7 @@ import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { ExchangeLocation, LatencyConnection, FilterOptions } from "@/types";
+import { OrbitControls as ThreeOrbitControls } from "three-stdlib";
 
 interface MobileOptimizedMapProps {
   exchanges: ExchangeLocation[];
@@ -15,12 +15,24 @@ interface MobileOptimizedMapProps {
   onExchangeClick?: (exchange: ExchangeLocation) => void;
 }
 
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+function hasMemory(
+  perf: Performance
+): perf is Performance & { memory: PerformanceMemory } {
+  return "memory" in perf;
+}
+
 // Performance-optimized camera controller for mobile
 const MobileCameraControls: React.FC<{
   onCameraChange?: (position: THREE.Vector3, target: THREE.Vector3) => void;
 }> = ({ onCameraChange }) => {
   const { camera, gl } = useThree();
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<ThreeOrbitControls>(null);
   const [isTouch, setIsTouch] = useState(false);
 
   useEffect(() => {
@@ -77,7 +89,7 @@ const SimplifiedMarker: React.FC<{
 }> = ({ position, color, isSelected, onClick }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current) {
       const scale = isSelected ? 1.3 : 1;
       meshRef.current.scale.setScalar(scale);
@@ -99,7 +111,6 @@ const SimplifiedMarker: React.FC<{
 export const MobileOptimizedMap: React.FC<MobileOptimizedMapProps> = ({
   exchanges,
   connections,
-  filters,
   theme,
   onExchangeClick,
 }) => {
@@ -117,7 +128,6 @@ export const MobileOptimizedMap: React.FC<MobileOptimizedMapProps> = ({
 
     if (gl) {
       const renderer = gl.getParameter(gl.RENDERER);
-      const vendor = gl.getParameter(gl.VENDOR);
 
       // Simple heuristic for device performance
       if (renderer.includes("PowerVR") || renderer.includes("Adreno 3")) {
@@ -134,8 +144,8 @@ export const MobileOptimizedMap: React.FC<MobileOptimizedMapProps> = ({
 
     // Memory-based detection
     if (
-      "memory" in performance &&
-      (performance as any).memory.usedJSHeapSize > 50000000
+      hasMemory(performance) &&
+      performance.memory.usedJSHeapSize > 50000000
     ) {
       setPerformanceMode((prev) => (prev === "high" ? "medium" : "low"));
     }
@@ -227,10 +237,9 @@ export const MobileOptimizedMap: React.FC<MobileOptimizedMapProps> = ({
 
   // Filter data based on performance mode
   const visibleExchanges = exchanges.slice(0, settings.maxMarkers);
-  const visibleConnections = connections.slice(0, settings.maxConnections);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full max-sm:block hidden">
       {/* Performance Indicator */}
       <div className="absolute top-2 right-2 z-10 text-xs bg-black/50 text-white px-2 py-1 rounded">
         {fps}fps • {performanceMode}
