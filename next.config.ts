@@ -1,24 +1,23 @@
 // next.config.js
 /** @type {import('next').NextConfig} */
+import { Configuration } from "webpack";
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
-  webpack: (config, { isServer }) => {
-    // Handle Three.js
-    config.module.rules.push({
+  webpack: (config: Configuration, { isServer }: { isServer: boolean }) => {
+    config?.module?.rules?.push({
       test: /\.(glsl|vs|fs|vert|frag)$/,
-      use: 'raw-loader',
+      use: "raw-loader",
       exclude: /node_modules/,
     });
 
     if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
+      if (config && config.resolve) {
+        config.resolve.fallback = {
+          ...config.resolve.fallback,
+          fs: false,
+          net: false,
+          tls: false,
+        };
+      }
     }
 
     return config;
@@ -29,19 +28,19 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: "X-Frame-Options",
+            value: "DENY",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
           },
         ],
       },
