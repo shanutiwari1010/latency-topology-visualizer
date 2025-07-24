@@ -21,6 +21,7 @@ import {
 } from "@/types";
 import { createLatencyConnections } from "@/lib/exchangeData";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 export default function CryptoLatencyVisualizer() {
   const [theme, setTheme] = useState<ThemeSettings>({
@@ -148,7 +149,7 @@ export default function CryptoLatencyVisualizer() {
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 Crypto Exchange Latency Monitor
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="max-sm:hidden text-sm text-gray-600 dark:text-gray-400">
                 Real-time visualization of global trading infrastructure
               </p>
             </div>
@@ -172,6 +173,11 @@ export default function CryptoLatencyVisualizer() {
           </div>
         </div>
       </header>
+
+      <MobileNavigation
+        activeView="map"
+        onViewChange={(view) => console.log(view)}
+      />
 
       {/* Loading overlay */}
       {isLoading && (
