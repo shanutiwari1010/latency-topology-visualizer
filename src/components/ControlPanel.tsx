@@ -166,17 +166,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 .filter((exchange) =>
                   exchange.toLowerCase().includes(searchTerm.toLowerCase())
                 )
-                .map((exchange) => (
-                  <div key={exchange} className="flex items-center">
+                .map((exchange, idx) => (
+                  <div
+                    key={`exchange-${exchange}-${idx}`}
+                    className="flex items-center"
+                  >
                     <input
                       type="checkbox"
-                      id={`exchange-${exchange}`}
+                      id={`exchange-${exchange}-${idx}`}
                       checked={filters.exchanges.includes(exchange)}
                       onChange={() => toggleExchange(exchange)}
                       className="mr-2"
                     />
                     <label
-                      htmlFor={`exchange-${exchange}`}
+                      htmlFor={`exchange-${exchange}-${idx}`}
                       className="text-sm capitalize"
                     >
                       {exchange}

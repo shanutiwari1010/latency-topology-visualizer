@@ -806,9 +806,9 @@ const Scene3D: React.FC<Map3DProps> = ({
       <Earth theme={theme} mapStyle={mapStyle} />
 
       {/* Exchange markers */}
-      {filteredExchanges.map((exchange) => (
+      {filteredExchanges.map((exchange, idx) => (
         <ExchangeMarker
-          key={exchange.id}
+          key={`${exchange.id}-${idx}`}
           exchange={exchange}
           isFiltered={true}
           mapStyle={mapStyle}
@@ -818,9 +818,9 @@ const Scene3D: React.FC<Map3DProps> = ({
       ))}
 
       {/* Latency connections */}
-      {filteredConnections.map((connection) => (
+      {filteredConnections.map((connection, idx) => (
         <LatencyConnection
-          key={connection.id}
+          key={`${connection.id}-${idx}`}
           connection={connection}
           isVisible={filters.showRealTime}
           animationSpeed={visualizationSettings.animationSpeed}

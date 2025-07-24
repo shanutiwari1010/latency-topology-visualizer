@@ -22,6 +22,7 @@ import {
 import { createLatencyConnections } from "@/lib/exchangeData";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import { MobileNavigation } from "@/components/MobileNavigation";
+import { synthesizeRegionExchanges } from "@/hooks/useLatencyData";
 
 export default function CryptoLatencyVisualizer() {
   const [theme, setTheme] = useState<ThemeSettings>({
@@ -54,6 +55,13 @@ export default function CryptoLatencyVisualizer() {
   const [timeRange, setTimeRange] = useState<TimeRange>("24h");
   const [showChart, setShowChart] = useState(false);
 
+  // State for region exchanges
+  const [regionExchanges, setRegionExchanges] = useState<ExchangeLocation[]>(
+    []
+  );
+  const [regionExError, setRegionExError] = useState<string | null>(null);
+  const [regionExLoading, setRegionExLoading] = useState(false);
+
   // Data hooks
   const {
     latencyData,
@@ -63,7 +71,7 @@ export default function CryptoLatencyVisualizer() {
     error,
     refreshData,
     lastUpdated,
-  } = useLatencyData(10000); // Refresh every 10 seconds
+  } = useLatencyData(5 * 60 * 1000); // Refresh every 5 minutes (passed as prop)
 
   const {
     exchanges,
@@ -75,6 +83,45 @@ export default function CryptoLatencyVisualizer() {
     hoveredExchange,
     setHoveredExchange,
   } = useExchangeData(filters);
+
+  console.log(JSON.stringify(latencyData, null, 2));
+
+  // Fetch region exchanges when latencyData changes
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchRegions() {
+      setRegionExLoading(true);
+      setRegionExError(null);
+      try {
+        const regions = await synthesizeRegionExchanges(latencyData);
+        if (!cancelled) setRegionExchanges(regions);
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "Unknown error";
+        if (!cancelled) setRegionExError(errorMessage);
+      } finally {
+        if (!cancelled) setRegionExLoading(false);
+      }
+    }
+    if (latencyData.length > 0) fetchRegions();
+    else setRegionExchanges([]);
+    return () => {
+      cancelled = true;
+    };
+  }, [latencyData]);
+
+  // Merge real and region exchanges for the map and connections
+  const allExchanges = React.useMemo(
+    () => [...exchanges, ...regionExchanges],
+    [exchanges, regionExchanges]
+  );
+  const allFilteredExchanges = React.useMemo(
+    () => [...filteredExchanges, ...regionExchanges],
+    [filteredExchanges, regionExchanges]
+  );
+
+  // Calculate uptime as percent of online exchanges in allFilteredExchanges
+  const onlineCount = allFilteredExchanges.filter(e => e.status === 'online').length;
+  const uptime = allFilteredExchanges.length > 0 ? (onlineCount / allFilteredExchanges.length) * 100 : 0;
 
   // Apply theme to document
   useEffect(() => {
@@ -112,7 +159,7 @@ export default function CryptoLatencyVisualizer() {
   );
 
   // Error state
-  if (error) {
+  if (error || regionExError) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
@@ -120,11 +167,22 @@ export default function CryptoLatencyVisualizer() {
             <MapPin className="w-12 h-12 mx-auto" />
           </div>
           <h2 className="text-xl font-semibold mb-2">Unable to Load Data</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            {error || regionExError}
+          </p>
           <Button onClick={refreshData}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
+        </Card>
+      </div>
+    );
+  }
+  if (isLoading || regionExLoading) {
+    return (
+      <div className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
+        <Card className="p-8">
+          <LoadingSpinner size="lg" message="Loading exchange data..." />
         </Card>
       </div>
     );
@@ -193,8 +251,8 @@ export default function CryptoLatencyVisualizer() {
         {/* 3D Map */}
         <div className="h-screen relative">
           <Map3D
-            exchanges={filteredExchanges}
-            connections={createLatencyConnections(exchanges, latencyData)}
+            exchanges={allFilteredExchanges}
+            connections={createLatencyConnections(allExchanges, latencyData)}
             filters={filters}
             visualizationSettings={visualizationSettings}
             theme={theme.mode}
@@ -218,7 +276,17 @@ export default function CryptoLatencyVisualizer() {
 
           {/* Metrics Dashboard */}
           <MetricsDashboard
-            metrics={metrics}
+            metrics={{
+              totalExchanges: allFilteredExchanges.length,
+              activeConnections: filteredConnections.length,
+              averageLatency:
+                filteredConnections.length > 0
+                  ? filteredConnections.reduce((sum, c) => sum + c.latency, 0) /
+                    filteredConnections.length
+                  : 0,
+              uptime,
+              lastUpdated: lastUpdated,
+            }}
             isLoading={isLoading}
             className="fixed bottom-10 right-2 z-30 w-96"
           />

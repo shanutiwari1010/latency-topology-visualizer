@@ -2,7 +2,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { LatencyData, HistoricalLatencyData, MetricsData } from "@/types";
+import {
+  ExchangeLocation,
+  LatencyData,
+  HistoricalLatencyData,
+  MetricsData,
+} from "@/types";
+import { createLatencyConnections } from "@/lib/exchangeData";
+import { EXCHANGE_LOCATIONS } from "@/constants/exchangeLocations";
 
 // List of locations to fetch (can be expanded as needed)
 const LOCATIONS = [
@@ -21,7 +28,13 @@ async function fetchRadarQualityForLocation(locationCode: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Radar API error for ${locationCode}`);
   const json = await res.json();
-  if (!json.success || !json.data.result || !json.data.result.summary_0)
+  // Defensive checks for the new response structure
+  if (
+    !json.success ||
+    !json.data ||
+    !json.data.result ||
+    !json.data.result.summary_0
+  )
     throw new Error("Malformed Radar API response");
   return json.data.result.summary_0;
 }
@@ -68,16 +81,52 @@ async function fetchRadarHistoricalForLocation(
   if (!res.ok)
     throw new Error(`Radar historical API error for ${locationCode}`);
   const json = await res.json();
-  if (!json.success || !json.data.result || !Array.isArray(json.data.result.serie_0))
+  // Defensive checks for the new response structure
+  if (
+    !json.success ||
+    !json.data ||
+    !json.data.result ||
+    !json.data.result.serie_0
+  )
     throw new Error("Malformed Radar historical API response");
-  return (
-    json.data.result.serie_0 as Array<{ timestamp: string; median: number }>
-  ).map((item) => ({
-    timestamp: new Date(item.timestamp).getTime(),
-    latency: item.median || 0,
-    source: locationCode,
-    target: "Cloudflare",
-  }));
+  const serie = json.data.result.serie_0;
+  // Handle both array and object (Cloudflare may return either)
+  if (Array.isArray(serie)) {
+    // Old format (should not happen now, but fallback)
+    return (serie as Array<{ timestamp: string; median: number }>).map(
+      (item) => ({
+        timestamp: new Date(item.timestamp).getTime(),
+        latency: item.median || 0,
+        source: locationCode,
+        target: "Cloudflare",
+      })
+    );
+  } else if (
+    typeof serie === "object" &&
+    Array.isArray(serie.timestamps) &&
+    Array.isArray(serie.p50)
+  ) {
+    // New format: timestamps and p50 (median) arrays
+    const { timestamps, p50 } = serie;
+    const result: HistoricalLatencyData[] = [];
+    for (let i = 0; i < timestamps.length; i++) {
+      const ts = timestamps[i];
+      const median = p50[i];
+      if (ts && median !== undefined && median !== null) {
+        result.push({
+          timestamp: new Date(ts).getTime(),
+          latency: parseFloat(median),
+          source: locationCode,
+          target: "Cloudflare",
+        });
+      }
+    }
+    return result;
+  } else {
+    throw new Error(
+      "Malformed Radar historical API response: unexpected format"
+    );
+  }
 }
 
 // Helper: Fetch and aggregate historical latency data for all locations
@@ -94,6 +143,143 @@ async function fetchRadarHistoricalData(): Promise<HistoricalLatencyData[]> {
   );
   // Flatten the array of arrays
   return results.flat();
+}
+
+// Helper: Fetch region metadata from the local API proxy
+async function fetchRegionMetadata(regionCode: string): Promise<{
+  code: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+}> {
+  try {
+    const res = await fetch(`/api/radar/location?code=${regionCode}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch region metadata for ${regionCode}`);
+    const json = await res.json();
+    if (
+      !json.success ||
+      !json.data ||
+      !json.data.result ||
+      !json.data.result.location
+    ) {
+      throw new Error("Malformed location API response");
+    }
+    const loc = json.data.result.location;
+    return {
+      code: loc.code,
+      name: loc.name,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+    };
+  } catch (e) {
+    // Fallback to static coordinates if API fails
+    const fallbackCoords: Record<
+      string,
+      { latitude: number; longitude: number; name: string }
+    > = {
+      US: { latitude: 39.8283, longitude: -98.5795, name: "United States" },
+      DE: { latitude: 51.1657, longitude: 10.4515, name: "Germany" },
+      GB: { latitude: 55.3781, longitude: -3.436, name: "United Kingdom" },
+      SG: { latitude: 1.3521, longitude: 103.8198, name: "Singapore" },
+      JP: { latitude: 36.2048, longitude: 138.2529, name: "Japan" },
+      IN: { latitude: 20.5937, longitude: 78.9629, name: "India" },
+    };
+    if (regionCode in fallbackCoords) {
+      const { latitude, longitude, name } = fallbackCoords[regionCode];
+      return { code: regionCode, name, latitude, longitude };
+    }
+    throw e;
+  }
+}
+
+// Helper: Map region code to cloud provider
+const REGION_PROVIDER_MAP: Record<string, "AWS" | "GCP" | "Azure"> = {
+  US: "AWS",
+  DE: "GCP",
+  GB: "Azure",
+  SG: "AWS",
+  JP: "GCP",
+  IN: "Azure",
+  // Add more as needed
+};
+
+// Helper: Synthesize ExchangeLocation objects for all region codes in latencyData
+async function synthesizeRegionExchanges(
+  latencyData: LatencyData[]
+): Promise<ExchangeLocation[]> {
+  const regionCodes = Array.from(
+    new Set(latencyData.flatMap((d) => [d.source, d.target]))
+  );
+  const exchanges: ExchangeLocation[] = [];
+  for (const code of regionCodes) {
+    // Avoid duplicates with real exchanges
+    if (EXCHANGE_LOCATIONS.some((e) => e.id === code)) continue;
+    try {
+      const meta = await fetchRegionMetadata(code);
+      const provider = REGION_PROVIDER_MAP[code];
+      exchanges.push({
+        id: code,
+        name: code,
+        displayName: `Region: ${meta.name}`,
+        coordinates: {
+          latitude: meta.latitude,
+          longitude: meta.longitude,
+          altitude: 0,
+        },
+        cloudProvider: provider,
+        provider: provider, // custom field for UI distinction
+        region: meta.name,
+        regionCode: code,
+        serverCount: 1,
+        status: "online",
+      } as ExchangeLocation & { provider?: string });
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        console.error(
+          `Failed to synthesize region exchange for ${code}:`,
+          e.message
+        );
+      } else {
+        console.error(`Failed to synthesize region exchange for ${code}:`, e);
+      }
+      // If metadata fails, skip this region
+      // Optionally, log or notify
+    }
+  }
+  return exchanges;
+}
+
+// Helper: Synthesize LatencyData for all region pairs if only region-to-Cloudflare is provided
+function synthesizeRegionConnections(
+  latencyData: LatencyData[]
+): LatencyData[] {
+  // If the data is only region-to-Cloudflare (e.g., source: 'US', target: 'Cloudflare'),
+  // synthesize connections between all regions for a more meaningful topology.
+  const regionNodes = Array.from(new Set(latencyData.map((d) => d.source)));
+  const regionPairs: LatencyData[] = [];
+  for (let i = 0; i < regionNodes.length; i++) {
+    for (let j = i + 1; j < regionNodes.length; j++) {
+      // Find latency for each region to Cloudflare and average them
+      const latencyA = latencyData.find((d) => d.source === regionNodes[i]);
+      const latencyB = latencyData.find((d) => d.source === regionNodes[j]);
+      if (latencyA && latencyB) {
+        regionPairs.push({
+          id: `cf-latency-${regionNodes[i]}-${regionNodes[j]}`,
+          source: regionNodes[i],
+          target: regionNodes[j],
+          latency: (latencyA.latency + latencyB.latency) / 2,
+          timestamp: Math.max(latencyA.timestamp, latencyB.timestamp),
+          quality: latencyA.quality, // or recalculate based on average
+          packetLoss:
+            ((latencyA.packetLoss || 0) + (latencyB.packetLoss || 0)) / 2,
+          jitter: ((latencyA.jitter || 0) + (latencyB.jitter || 0)) / 2,
+        });
+      }
+    }
+  }
+  // Optionally, keep the original region-to-Cloudflare connections for star topology
+  return [...latencyData, ...regionPairs];
 }
 
 interface UseLatencyDataReturn {
@@ -131,21 +317,30 @@ export const useLatencyData = (
     try {
       // Fetch real-time latency data for all locations
       const latency = await fetchAllRadarLatencyData();
-      console.log(latency, "latency");
       // Fetch historical data (empty for now)
       const historical = await fetchRadarHistoricalData();
+      // Use the synthesized connections for a more meaningful topology
+      const synthesizedLatencyData = synthesizeRegionConnections(latency);
+      // Synthesize region exchanges for uptime calculation
+      const regionExchanges = await synthesizeRegionExchanges(synthesizedLatencyData);
+      const allExchanges = [...EXCHANGE_LOCATIONS, ...regionExchanges];
+      // Calculate uptime as percent of online exchanges
+      const onlineCount = allExchanges.filter(e => e.status === 'online').length;
+      const uptime = allExchanges.length > 0 ? (onlineCount / allExchanges.length) * 100 : 0;
       // Metrics: Calculate from latency data
-      const avgLatency = latency.length
-        ? latency.reduce((sum: number, d: LatencyData) => sum + d.latency, 0) /
-          latency.length
+      const avgLatency = synthesizedLatencyData.length
+        ? synthesizedLatencyData.reduce(
+            (sum: number, d: LatencyData) => sum + d.latency,
+            0
+          ) / synthesizedLatencyData.length
         : 0;
-      setLatencyData(latency);
+      setLatencyData(synthesizedLatencyData);
       setHistoricalData(historical);
       setMetrics({
-        totalExchanges: latency.length,
-        activeConnections: latency.length,
+        totalExchanges: synthesizedLatencyData.length,
+        activeConnections: synthesizedLatencyData.length,
         averageLatency: avgLatency,
-        uptime: 99.9,
+        uptime,
         lastUpdated: Date.now(),
       });
       setLastUpdated(Date.now());
@@ -173,7 +368,7 @@ export const useLatencyData = (
   // Initial data fetch
   useEffect(() => {
     fetchLatencyData();
-  }, []);
+  }, [fetchLatencyData]);
 
   // Set up auto-refresh interval
   useEffect(() => {
@@ -199,3 +394,5 @@ export const useLatencyData = (
     lastUpdated,
   };
 };
+
+export { synthesizeRegionExchanges };
