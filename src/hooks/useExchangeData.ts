@@ -41,6 +41,7 @@ export const useExchangeData = (
         const regions = await synthesizeRegionExchanges(latencyData);
         if (!cancelled) setRegionExchanges(regions);
       } catch (e) {
+        console.error("Error synthesizing region exchanges:", e);
         if (!cancelled) setRegionExchanges([]);
       }
     }
