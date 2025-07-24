@@ -44,6 +44,7 @@ async function fetchAllRadarLatencyData(): Promise<LatencyData[]> {
   const now = Date.now();
   const results = await Promise.all(
     LOCATIONS.map(async (loc) => {
+      if (loc.code === "Cloudflare") return null;
       try {
         const data = await fetchRadarQualityForLocation(loc.code);
         return {
@@ -153,6 +154,15 @@ async function fetchRegionMetadata(regionCode: string): Promise<{
   longitude: number;
 }> {
   try {
+    if (regionCode === "Cloudflare") {
+      return {
+        code: "Cloudflare",
+        name: "Cloudflare",
+        latitude: 37.7749,
+        longitude: -122.4194,
+      };
+    }
+
     const res = await fetch(`/api/radar/location?code=${regionCode}`);
     if (!res.ok)
       throw new Error(`Failed to fetch region metadata for ${regionCode}`);
@@ -293,7 +303,7 @@ interface UseLatencyDataReturn {
 }
 
 export const useLatencyData = (
-  refreshInterval: number = 10000
+  refreshInterval: number = 5 * 60 * 1000
 ): UseLatencyDataReturn => {
   const [latencyData, setLatencyData] = useState<LatencyData[]>([]);
   const [historicalData, setHistoricalData] = useState<HistoricalLatencyData[]>(
@@ -322,11 +332,16 @@ export const useLatencyData = (
       // Use the synthesized connections for a more meaningful topology
       const synthesizedLatencyData = synthesizeRegionConnections(latency);
       // Synthesize region exchanges for uptime calculation
-      const regionExchanges = await synthesizeRegionExchanges(synthesizedLatencyData);
+      const regionExchanges = await synthesizeRegionExchanges(
+        synthesizedLatencyData
+      );
       const allExchanges = [...EXCHANGE_LOCATIONS, ...regionExchanges];
       // Calculate uptime as percent of online exchanges
-      const onlineCount = allExchanges.filter(e => e.status === 'online').length;
-      const uptime = allExchanges.length > 0 ? (onlineCount / allExchanges.length) * 100 : 0;
+      const onlineCount = allExchanges.filter(
+        (e) => e.status === "online"
+      ).length;
+      const uptime =
+        allExchanges.length > 0 ? (onlineCount / allExchanges.length) * 100 : 0;
       // Metrics: Calculate from latency data
       const avgLatency = synthesizedLatencyData.length
         ? synthesizedLatencyData.reduce(
@@ -365,13 +380,10 @@ export const useLatencyData = (
     fetchLatencyData();
   }, [fetchLatencyData]);
 
-  // Initial data fetch
+  // Initial data fetch (only on mount)
   useEffect(() => {
     fetchLatencyData();
-  }, [fetchLatencyData]);
-
-  // Set up auto-refresh interval
-  useEffect(() => {
+    // Set up auto-refresh interval
     if (refreshInterval > 0) {
       intervalRef.current = setInterval(() => {
         fetchLatencyData();
@@ -382,7 +394,8 @@ export const useLatencyData = (
         clearInterval(intervalRef.current);
       }
     };
-  }, [refreshInterval, fetchLatencyData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     latencyData,

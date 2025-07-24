@@ -105,7 +105,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     const start = performance.now();
 
     try {
-      await fetch("/api/latency?type=ping", { method: "HEAD" });
+      await fetch("/api/radar/latency?type=ping", { method: "HEAD" });
       const latency = performance.now() - start;
 
       setMetrics((prev) => ({

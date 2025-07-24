@@ -240,7 +240,7 @@ export const CLOUD_REGIONS: CloudRegion[] = [
 
 export const PROVIDER_COLORS = {
   AWS: "#FF9500",
-  GCP: "#4285F4",
+  GCP: "#22C55E",
   Azure: "#0078D4",
 };
 

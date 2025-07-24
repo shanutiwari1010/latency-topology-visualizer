@@ -83,17 +83,3 @@ export async function OPTIONS() {
     },
   });
 }
-
-async function fetchRegionMetadata(regionCode: string) {
-  const res = await fetch(`/api/radar/location?code=${regionCode}`);
-  const json = await res.json();
-  if (
-    !json.success ||
-    !json.data ||
-    !json.data.result ||
-    !json.data.result.location
-  ) {
-    throw new Error("Malformed location API response");
-  }
-  return json.data.result.location; // { code, name, latitude, longitude, ... }
-}

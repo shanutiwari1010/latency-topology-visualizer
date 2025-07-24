@@ -584,6 +584,9 @@ const LatencyConnection: React.FC<{
   const quality = getLatencyQuality(connection.latency);
   const color = LATENCY_QUALITY_COLORS[quality];
 
+  // Use cloud provider color for the line
+  const providerColor = PROVIDER_COLORS[connection.source.cloudProvider] || '#888';
+
   useFrame((state) => {
     if (!isVisible) return;
 
@@ -605,11 +608,11 @@ const LatencyConnection: React.FC<{
 
   return (
     <group>
-      {/* Connection line with gradient effect */}
+      {/* Connection line with provider color */}
       <Line
         // ref={lineRef}
         points={curve.getPoints(50)}
-        color={color}
+        color={providerColor}
         lineWidth={connection.latency > 100 ? 3 : 2}
         transparent
         opacity={0.7}
@@ -618,7 +621,7 @@ const LatencyConnection: React.FC<{
       {/* Animated particle */}
       <mesh ref={particleRef}>
         <sphereGeometry args={[0.006, 8, 6]} />
-        <meshBasicMaterial color={color} transparent opacity={0.9} />
+        <meshBasicMaterial color={providerColor} transparent opacity={0.9} />
       </mesh>
 
       {/* Pulse effect for high latency */}

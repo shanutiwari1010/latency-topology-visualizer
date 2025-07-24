@@ -35,7 +35,12 @@ export async function GET(request: NextRequest) {
     });
     if (!radarRes.ok) {
       const text = await radarRes.text();
-      console.error("Radar Location API error:", radarUrl, radarRes.status, text);
+      console.error(
+        "Radar Location API error:",
+        radarUrl,
+        radarRes.status,
+        text
+      );
       return NextResponse.json(
         {
           success: false,
@@ -77,4 +82,4 @@ export async function OPTIONS() {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
-} 
+}
