@@ -65,7 +65,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, payload } = body;
+    const {
+      action,
+      // payload
+    } = body;
 
     // Simulate different POST actions
     switch (action) {

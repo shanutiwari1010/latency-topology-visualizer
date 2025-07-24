@@ -67,7 +67,7 @@ export default function CryptoLatencyVisualizer() {
 
   const {
     exchanges,
-    connections,
+    // connections,
     filteredExchanges,
     filteredConnections,
     selectedExchange,

@@ -19,7 +19,7 @@ import type {
 } from "@/types";
 
 import {
-  EXCHANGE_LOCATIONS,
+  // EXCHANGE_LOCATIONS,
   PROVIDER_COLORS,
   LATENCY_QUALITY_COLORS,
   LATENCY_THRESHOLDS,
@@ -549,7 +549,7 @@ const LatencyConnection: React.FC<{
   isVisible: boolean;
   animationSpeed: number;
 }> = ({ connection, isVisible, animationSpeed }) => {
-  const lineRef = useRef<THREE.Line>(null);
+  // const lineRef = useRef<THREE.Line>(null);
   const particleRef = useRef<THREE.Mesh>(null);
   const [animationProgress, setAnimationProgress] = useState(Math.random());
 
@@ -607,7 +607,7 @@ const LatencyConnection: React.FC<{
     <group>
       {/* Connection line with gradient effect */}
       <Line
-        ref={lineRef}
+        // ref={lineRef}
         points={curve.getPoints(50)}
         color={color}
         lineWidth={connection.latency > 100 ? 3 : 2}
@@ -638,64 +638,67 @@ const LatencyConnection: React.FC<{
 };
 
 // Enhanced Cloud region visualization
-const CloudRegion: React.FC<{
-  region: {
-    name: string;
-    coordinates: { latitude: number; longitude: number };
-    provider: string;
-  };
-  isVisible: boolean;
-}> = ({ region, isVisible }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const position = useMemo(
-    () =>
-      latLngToVector3(
-        region.coordinates.latitude,
-        region.coordinates.longitude,
-        1.08
-      ),
-    [region.coordinates]
-  );
-
-  const color =
-    PROVIDER_COLORS[region.provider as keyof typeof PROVIDER_COLORS];
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.z = state.clock.elapsedTime * 0.5;
-      // Subtle pulsing
-      const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.1 + 1;
-      meshRef.current.scale.setScalar(pulse);
-    }
-  });
-
-  if (!isVisible) return null;
-
-  return (
-    <group position={position}>
-      <mesh ref={meshRef}>
-        <ringGeometry args={[0.04, 0.06, 16]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.4}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      {/* Inner glow */}
-      <mesh>
-        <ringGeometry args={[0.02, 0.04, 16]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.2}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-    </group>
-  );
-};
+// TODO: This component is available for future use when cloud regions are implemented
+// Temporarily disabled to avoid build errors
+// 
+// const CloudRegion: React.FC<{
+//   region: {
+//     name: string;
+//     coordinates: { latitude: number; longitude: number };
+//     provider: string;
+//   };
+//   isVisible: boolean;
+// }> = ({ region, isVisible }) => {
+//   const meshRef = useRef<THREE.Mesh>(null);
+//   const position = useMemo(
+//     () =>
+//       latLngToVector3(
+//         region.coordinates.latitude,
+//         region.coordinates.longitude,
+//         1.08
+//       ),
+//     [region.coordinates]
+//   );
+// 
+//   const color =
+//     PROVIDER_COLORS[region.provider as keyof typeof PROVIDER_COLORS];
+// 
+//   useFrame((state) => {
+//     if (meshRef.current) {
+//       meshRef.current.rotation.z = state.clock.elapsedTime * 0.5;
+//       // Subtle pulsing
+//       const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.1 + 1;
+//       meshRef.current.scale.setScalar(pulse);
+//     }
+//   });
+// 
+//   if (!isVisible) return null;
+// 
+//   return (
+//     <group position={position}>
+//       <mesh ref={meshRef}>
+//         <ringGeometry args={[0.04, 0.06, 16]} />
+//         <meshBasicMaterial
+//           color={color}
+//           transparent
+//           opacity={0.4}
+//           side={THREE.DoubleSide}
+//         />
+//       </mesh>
+// 
+//       {/* Inner glow */}
+//       <mesh>
+//         <ringGeometry args={[0.02, 0.04, 16]} />
+//         <meshBasicMaterial
+//           color={color}
+//           transparent
+//           opacity={0.2}
+//           side={THREE.DoubleSide}
+//         />
+//       </mesh>
+//     </group>
+//   );
+// };
 
 // Main 3D scene component
 const Scene3D: React.FC<Map3DProps> = ({

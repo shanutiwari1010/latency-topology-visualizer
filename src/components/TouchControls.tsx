@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { RotateCcw, ZoomIn, ZoomOut, Move, RotateCw } from "lucide-react";
+import { RotateCcw, ZoomIn, ZoomOut, RotateCw } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 
@@ -122,7 +122,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     [currentGesture, getDistance, getAngle, onPan, onZoom, onRotate]
   );
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
+  const handleTouchEnd = useCallback(() => {
     setIsGestureActive(false);
     setCurrentGesture(null);
   }, []);

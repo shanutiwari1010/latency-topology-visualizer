@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import {
-  LineChart,
+  // LineChart,
   Line,
   XAxis,
   YAxis,
@@ -15,9 +15,14 @@ import {
 } from "recharts";
 import { Clock, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { HistoricalLatencyData, TimeRange, ChartDataPoint } from "@/types";
-import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Select } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface LatencyChartProps {
   data: HistoricalLatencyData[];
@@ -86,6 +91,7 @@ const calculateStats = (data: ChartDataPoint[]) => {
   return { min, max, avg, trend };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -180,8 +186,18 @@ const LatencyChart: React.FC<LatencyChartProps> = ({
           <Select
             value={timeRange}
             onValueChange={(value) => onTimeRangeChange(value as TimeRange)}
-            options={timeRangeOptions}
-          />
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {timeRangeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
