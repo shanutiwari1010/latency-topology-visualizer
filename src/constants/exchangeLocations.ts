@@ -1,259 +1,259 @@
-import { ExchangeLocation, CloudRegion } from '@/types';
+import { ExchangeLocation, CloudRegion } from "@/types";
 
 export const EXCHANGE_LOCATIONS: ExchangeLocation[] = [
   // Binance locations
   {
-    id: 'binance-us-east',
-    name: 'binance',
-    displayName: 'Binance (US East)',
+    id: "binance-us-east",
+    name: "binance",
+    displayName: "Binance (US East)",
     coordinates: { latitude: 39.0458, longitude: -77.5071, altitude: 0.02 },
-    cloudProvider: 'AWS',
-    region: 'US East (Virginia)',
-    regionCode: 'us-east-1',
+    cloudProvider: "AWS",
+    region: "US East (Virginia)",
+    regionCode: "us-east-1",
     serverCount: 15,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'binance-eu-west',
-    name: 'binance',
-    displayName: 'Binance (EU West)',
+    id: "binance-eu-west",
+    name: "binance",
+    displayName: "Binance (EU West)",
     coordinates: { latitude: 53.4084, longitude: -6.3947, altitude: 0.02 },
-    cloudProvider: 'AWS',
-    region: 'Europe (Ireland)',
-    regionCode: 'eu-west-1',
+    cloudProvider: "AWS",
+    region: "Europe (Ireland)",
+    regionCode: "eu-west-1",
     serverCount: 12,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'binance-asia',
-    name: 'binance',
-    displayName: 'Binance (Asia Pacific)',
+    id: "binance-asia",
+    name: "binance",
+    displayName: "Binance (Asia Pacific)",
     coordinates: { latitude: 1.3521, longitude: 103.8198, altitude: 0.02 },
-    cloudProvider: 'AWS',
-    region: 'Asia Pacific (Singapore)',
-    regionCode: 'ap-southeast-1',
+    cloudProvider: "AWS",
+    region: "Asia Pacific (Singapore)",
+    regionCode: "ap-southeast-1",
     serverCount: 18,
-    status: 'online'
+    status: "online",
   },
   // OKX locations
   {
-    id: 'okx-us',
-    name: 'okx',
-    displayName: 'OKX (US Central)',
-    coordinates: { latitude: 41.2524, longitude: -95.9980, altitude: 0.02 },
-    cloudProvider: 'GCP',
-    region: 'US Central',
-    regionCode: 'us-central1',
+    id: "okx-us",
+    name: "okx",
+    displayName: "OKX (US Central)",
+    coordinates: { latitude: 41.2524, longitude: -95.998, altitude: 0.02 },
+    cloudProvider: "GCP",
+    region: "US Central",
+    regionCode: "us-central1",
     serverCount: 8,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'okx-europe',
-    name: 'okx',
-    displayName: 'OKX (Europe)',
+    id: "okx-europe",
+    name: "okx",
+    displayName: "OKX (Europe)",
     coordinates: { latitude: 50.1109, longitude: 8.6821, altitude: 0.02 },
-    cloudProvider: 'GCP',
-    region: 'Europe West',
-    regionCode: 'europe-west3',
+    cloudProvider: "GCP",
+    region: "Europe West",
+    regionCode: "europe-west3",
     serverCount: 10,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'okx-asia',
-    name: 'okx',
-    displayName: 'OKX (Asia)',
+    id: "okx-asia",
+    name: "okx",
+    displayName: "OKX (Asia)",
     coordinates: { latitude: 35.6762, longitude: 139.6503, altitude: 0.02 },
-    cloudProvider: 'GCP',
-    region: 'Asia Northeast',
-    regionCode: 'asia-northeast1',
+    cloudProvider: "GCP",
+    region: "Asia Northeast",
+    regionCode: "asia-northeast1",
     serverCount: 14,
-    status: 'online'
+    status: "online",
   },
   // Bybit locations
   {
-    id: 'bybit-us',
-    name: 'bybit',
-    displayName: 'Bybit (US West)',
+    id: "bybit-us",
+    name: "bybit",
+    displayName: "Bybit (US West)",
     coordinates: { latitude: 37.7749, longitude: -122.4194, altitude: 0.02 },
-    cloudProvider: 'Azure',
-    region: 'West US',
-    regionCode: 'westus',
+    cloudProvider: "Azure",
+    region: "West US",
+    regionCode: "westus",
     serverCount: 6,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'bybit-eu',
-    name: 'bybit',
-    displayName: 'Bybit (Europe)',
+    id: "bybit-eu",
+    name: "bybit",
+    displayName: "Bybit (Europe)",
     coordinates: { latitude: 52.3676, longitude: 4.9041, altitude: 0.02 },
-    cloudProvider: 'Azure',
-    region: 'West Europe',
-    regionCode: 'westeurope',
+    cloudProvider: "Azure",
+    region: "West Europe",
+    regionCode: "westeurope",
     serverCount: 7,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'bybit-sea',
-    name: 'bybit',
-    displayName: 'Bybit (Southeast Asia)',
+    id: "bybit-sea",
+    name: "bybit",
+    displayName: "Bybit (Southeast Asia)",
     coordinates: { latitude: 1.3521, longitude: 103.8198, altitude: 0.02 },
-    cloudProvider: 'Azure',
-    region: 'Southeast Asia',
-    regionCode: 'southeastasia',
+    cloudProvider: "Azure",
+    region: "Southeast Asia",
+    regionCode: "southeastasia",
     serverCount: 9,
-    status: 'online'
+    status: "online",
   },
   // Deribit locations
   {
-    id: 'deribit-eu',
-    name: 'deribit',
-    displayName: 'Deribit (EU Central)',
+    id: "deribit-eu",
+    name: "deribit",
+    displayName: "Deribit (EU Central)",
     coordinates: { latitude: 50.1109, longitude: 8.6821, altitude: 0.02 },
-    cloudProvider: 'AWS',
-    region: 'Europe (Frankfurt)',
-    regionCode: 'eu-central-1',
+    cloudProvider: "AWS",
+    region: "Europe (Frankfurt)",
+    regionCode: "eu-central-1",
     serverCount: 5,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'deribit-us',
-    name: 'deribit',
-    displayName: 'Deribit (US East)',
-    coordinates: { latitude: 40.7128, longitude: -74.0060, altitude: 0.02 },
-    cloudProvider: 'AWS',
-    region: 'US East (N. Virginia)',
-    regionCode: 'us-east-1',
+    id: "deribit-us",
+    name: "deribit",
+    displayName: "Deribit (US East)",
+    coordinates: { latitude: 40.7128, longitude: -74.006, altitude: 0.02 },
+    cloudProvider: "AWS",
+    region: "US East (N. Virginia)",
+    regionCode: "us-east-1",
     serverCount: 4,
-    status: 'online'
+    status: "online",
   },
   // Coinbase locations
   {
-    id: 'coinbase-us-west',
-    name: 'coinbase',
-    displayName: 'Coinbase (US West)',
+    id: "coinbase-us-west",
+    name: "coinbase",
+    displayName: "Coinbase (US West)",
     coordinates: { latitude: 37.7749, longitude: -122.4194, altitude: 0.02 },
-    cloudProvider: 'GCP',
-    region: 'US West',
-    regionCode: 'us-west1',
+    cloudProvider: "GCP",
+    region: "US West",
+    regionCode: "us-west1",
     serverCount: 12,
-    status: 'online'
+    status: "online",
   },
   {
-    id: 'coinbase-us-east',
-    name: 'coinbase',
-    displayName: 'Coinbase (US East)',
-    coordinates: { latitude: 40.7128, longitude: -74.0060, altitude: 0.02 },
-    cloudProvider: 'GCP',
-    region: 'US East',
-    regionCode: 'us-east1',
+    id: "coinbase-us-east",
+    name: "coinbase",
+    displayName: "Coinbase (US East)",
+    coordinates: { latitude: 40.7128, longitude: -74.006, altitude: 0.02 },
+    cloudProvider: "GCP",
+    region: "US East",
+    regionCode: "us-east1",
     serverCount: 11,
-    status: 'online'
-  }
+    status: "online",
+  },
 ];
 
 export const CLOUD_REGIONS: CloudRegion[] = [
   // AWS Regions
   {
-    id: 'aws-us-east-1',
-    provider: 'AWS',
-    name: 'US East (Virginia)',
-    code: 'us-east-1',
+    id: "aws-us-east-1",
+    provider: "AWS",
+    name: "US East (Virginia)",
+    code: "us-east-1",
     coordinates: { latitude: 39.0458, longitude: -77.5071 },
     exchangeCount: 3,
-    averageLatency: 25
+    averageLatency: 25,
   },
   {
-    id: 'aws-eu-west-1',
-    provider: 'AWS',
-    name: 'Europe (Ireland)',
-    code: 'eu-west-1',
+    id: "aws-eu-west-1",
+    provider: "AWS",
+    name: "Europe (Ireland)",
+    code: "eu-west-1",
     coordinates: { latitude: 53.4084, longitude: -6.3947 },
     exchangeCount: 2,
-    averageLatency: 18
+    averageLatency: 18,
   },
   {
-    id: 'aws-ap-southeast-1',
-    provider: 'AWS',
-    name: 'Asia Pacific (Singapore)',
-    code: 'ap-southeast-1',
+    id: "aws-ap-southeast-1",
+    provider: "AWS",
+    name: "Asia Pacific (Singapore)",
+    code: "ap-southeast-1",
     coordinates: { latitude: 1.3521, longitude: 103.8198 },
     exchangeCount: 2,
-    averageLatency: 22
+    averageLatency: 22,
   },
   // GCP Regions
   {
-    id: 'gcp-us-central1',
-    provider: 'GCP',
-    name: 'US Central',
-    code: 'us-central1',
-    coordinates: { latitude: 41.2524, longitude: -95.9980 },
+    id: "gcp-us-central1",
+    provider: "GCP",
+    name: "US Central",
+    code: "us-central1",
+    coordinates: { latitude: 41.2524, longitude: -95.998 },
     exchangeCount: 3,
-    averageLatency: 28
+    averageLatency: 28,
   },
   {
-    id: 'gcp-europe-west3',
-    provider: 'GCP',
-    name: 'Europe West (Frankfurt)',
-    code: 'europe-west3',
+    id: "gcp-europe-west3",
+    provider: "GCP",
+    name: "Europe West (Frankfurt)",
+    code: "europe-west3",
     coordinates: { latitude: 50.1109, longitude: 8.6821 },
     exchangeCount: 2,
-    averageLatency: 20
+    averageLatency: 20,
   },
   {
-    id: 'gcp-asia-northeast1',
-    provider: 'GCP',
-    name: 'Asia Northeast (Tokyo)',
-    code: 'asia-northeast1',
+    id: "gcp-asia-northeast1",
+    provider: "GCP",
+    name: "Asia Northeast (Tokyo)",
+    code: "asia-northeast1",
     coordinates: { latitude: 35.6762, longitude: 139.6503 },
     exchangeCount: 2,
-    averageLatency: 15
+    averageLatency: 15,
   },
   // Azure Regions
   {
-    id: 'azure-westus',
-    provider: 'Azure',
-    name: 'West US',
-    code: 'westus',
+    id: "azure-westus",
+    provider: "Azure",
+    name: "West US",
+    code: "westus",
     coordinates: { latitude: 37.7749, longitude: -122.4194 },
     exchangeCount: 2,
-    averageLatency: 24
+    averageLatency: 24,
   },
   {
-    id: 'azure-westeurope',
-    provider: 'Azure',
-    name: 'West Europe',
-    code: 'westeurope',
+    id: "azure-westeurope",
+    provider: "Azure",
+    name: "West Europe",
+    code: "westeurope",
     coordinates: { latitude: 52.3676, longitude: 4.9041 },
     exchangeCount: 2,
-    averageLatency: 19
+    averageLatency: 19,
   },
   {
-    id: 'azure-southeastasia',
-    provider: 'Azure',
-    name: 'Southeast Asia',
-    code: 'southeastasia',
+    id: "azure-southeastasia",
+    provider: "Azure",
+    name: "Southeast Asia",
+    code: "southeastasia",
     coordinates: { latitude: 1.3521, longitude: 103.8198 },
     exchangeCount: 1,
-    averageLatency: 26
-  }
+    averageLatency: 26,
+  },
 ];
 
 export const PROVIDER_COLORS = {
-  AWS: '#FF9500',
-  GCP: '#4285F4',
-  Azure: '#0078D4'
+  AWS: "#FF9500",
+  GCP: "#4285F4",
+  Azure: "#0078D4",
 };
 
 export const LATENCY_QUALITY_COLORS = {
-  excellent: '#10B981', // Green
-  good: '#F59E0B',      // Yellow
-  fair: '#EF4444',      // Orange
-  poor: '#DC2626'       // Red
+  excellent: "#10B981", // Green
+  good: "#F59E0B", // Yellow
+  fair: "#EF4444", // Orange
+  poor: "#DC2626", // Red
 };
 
 export const LATENCY_THRESHOLDS = {
   excellent: 20,
   good: 50,
   fair: 100,
-  poor: Infinity
+  poor: Infinity,
 };
