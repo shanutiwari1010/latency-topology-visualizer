@@ -316,7 +316,7 @@ export default function CryptoLatencyVisualizer() {
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>
+            <span suppressHydrationWarning>
               Live • Last updated: {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           </div>
