@@ -56,10 +56,9 @@ const Legend: React.FC<LegendProps> = ({ className }) => {
                 />
                 <span className="text-xs capitalize">{quality}</span>
                 <span className="text-xs text-gray-500 ml-1">
-                  {quality === "excellent" && "(≤20ms)"}
-                  {quality === "good" && "(21-50ms)"}
-                  {quality === "fair" && "(51-100ms)"}
-                  {quality === "poor" && "(>100ms)"}
+                  {quality === "high" && "(≤20ms)"}
+                  {quality === "medium" && "(21-100ms)"}
+                  {quality === "low" && "(>100ms)"}
                 </span>
               </div>
             ))}
