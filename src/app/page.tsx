@@ -23,6 +23,8 @@ import { createLatencyConnections } from "@/lib/exchangeData";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { synthesizeRegionExchanges } from "@/hooks/useLatencyData";
+import useIsMobile from "@/hooks/useIsMobile";
+import { Tooltip } from "@/components/ui/tooltip";
 
 export default function CryptoLatencyVisualizer() {
   const [theme, setTheme] = useState<ThemeSettings>({
@@ -163,10 +165,23 @@ export default function CryptoLatencyVisualizer() {
     [setHoveredExchange]
   );
 
-  // Popup state management
+  // Responsive navigation state for mobile/tablet
+  const [activeView, setActiveView] = useState<
+    "map" | "chart" | "settings" | "info"
+  >("map");
+  // Floating panel state for desktop
   const [openPopup, setOpenPopup] = useState<
     "control" | "metrics" | "chart" | null
   >("metrics");
+
+  const isTabletOrMobile = useIsMobile(1024);
+
+  // Hide floating panels on tablet/mobile
+  useEffect(() => {
+    if (isTabletOrMobile && openPopup !== null) {
+      setOpenPopup(null);
+    }
+  }, [isTabletOrMobile]);
 
   // Error state
   if (error || regionExError) {
@@ -223,160 +238,241 @@ export default function CryptoLatencyVisualizer() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setOpenPopup(openPopup === "chart" ? null : "chart")
-              }
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              {openPopup === "chart" ? "Hide" : "Show"} Chart
-            </Button>
-            <Button variant="outline" size="sm" onClick={refreshData}>
-              <RefreshCw
-                className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </Button>
-          </div>
+          {/* Desktop: chart/refresh buttons */}
+          {!isTabletOrMobile && (
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOpenPopup(openPopup === "chart" ? null : "chart")}
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                {openPopup === "chart" ? "Hide" : "Show"} Chart
+              </Button>
+              <Button variant="outline" size="sm" onClick={refreshData}>
+                <RefreshCw
+                  className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile: refresh icon with tooltip */}
+          {isTabletOrMobile && (
+            <Tooltip content="Refresh Data">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Refresh Data"
+                onClick={refreshData}
+                className="ml-2"
+              >
+                <RefreshCw className={`w-6 h-6 ${isLoading ? "animate-spin" : ""}`} />
+              </Button>
+            </Tooltip>
+          )}
         </div>
       </header>
 
-      <MobileNavigation
-        activeView="map"
-        onViewChange={(view) => console.log(view)}
-      />
-
-      {/* Loading overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
-          <Card className="p-8">
-            <LoadingSpinner size="lg" message="Loading exchange data..." />
-          </Card>
-        </div>
-      )}
+      <MobileNavigation activeView={activeView} onViewChange={setActiveView} />
 
       {/* Main content */}
       <div className="relative">
-        {/* 3D Map */}
-        <div className="h-screen relative">
-          <Map3D
-            exchanges={allFilteredExchanges}
-            connections={createLatencyConnections(allExchanges, latencyData)}
-            filters={filters}
-            visualizationSettings={visualizationSettings}
-            theme={theme.mode}
-            mapStyle={theme.mapStyle}
-            onExchangeClick={handleExchangeClick}
-            onExchangeHover={handleExchangeHover}
-          />
-
-          {/* Control Panel as popup */}
-          <ControlPanel
-            filters={filters}
-            visualizationSettings={visualizationSettings}
-            theme={theme}
-            onFiltersChange={setFilters}
-            onVisualizationChange={setVisualizationSettings}
-            onThemeChange={setTheme}
-            isOpen={openPopup === "control"}
-            onOpen={() => setOpenPopup("control")}
-            onClose={() => setOpenPopup(null)}
-          />
-
-          {/* Legend */}
-          <Legend className="fixed bottom-10 left-2 z-30 w-60 max-w-sm" />
-
-          {/* Metrics Dashboard as popup */}
-          <MetricsDashboard
-            metrics={{
-              totalExchanges: allFilteredExchanges.length,
-              activeConnections: filteredConnections.length,
-              averageLatency:
-                filteredConnections.length > 0
-                  ? filteredConnections.reduce((sum, c) => sum + c.latency, 0) /
-                    filteredConnections.length
-                  : 0,
-              uptime,
-              lastUpdated: lastUpdated,
-            }}
-            isLoading={isLoading}
-            className="fixed bottom-10 right-2 z-30 w-96"
-            isOpen={openPopup === "metrics"}
-            onOpen={() => setOpenPopup("metrics")}
-            onClose={() => setOpenPopup(null)}
-          />
-
-          <PerformanceMonitor className="fixed top-22 left-2 z-30 w-60 max-w-sm" />
-
-          {/* Selected Exchange Info */}
-          {selectedExchange && (
-            <Card className="fixed top-22 left-2 z-30 p-4 pt-3 w-60 max-w-sm">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold">
-                  {selectedExchange.displayName}
-                </h4>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setSelectedExchange(null)}
-                  className="text-gray-400 hover:text-gray-600 rounded-full"
-                >
-                  <X />
-                </Button>
+        {/* Responsive: mobile/tablet = one panel, desktop = floating panels */}
+        {isTabletOrMobile ? (
+          <>
+            {activeView === "map" && (
+              <div className="h-screen w-full">
+                <Map3D
+                  exchanges={allFilteredExchanges}
+                  connections={createLatencyConnections(
+                    allExchanges,
+                    latencyData
+                  )}
+                  filters={filters}
+                  visualizationSettings={visualizationSettings}
+                  theme={theme.mode}
+                  mapStyle={theme.mapStyle}
+                  onExchangeClick={handleExchangeClick}
+                  onExchangeHover={handleExchangeHover}
+                  isMobile={true}
+                />
               </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Provider:</span>
-                  <span className="font-medium">
-                    {selectedExchange.cloudProvider}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Region:</span>
-                  <span className="font-medium">{selectedExchange.region}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Servers:</span>
-                  <span className="font-medium">
-                    {selectedExchange.serverCount}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span
-                    className={`font-medium capitalize ${
-                      selectedExchange.status === "online"
-                        ? "text-green-600"
-                        : selectedExchange.status === "maintenance"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
+            )}
+            {activeView === "chart" && (
+              <div className="mb-28 z-30 bg-white dark:bg-gray-900">
+                <LatencyChart
+                  data={historicalData}
+                  selectedPair={selectedPair}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                  theme={theme.mode}
+                  className="h-full"
+                />
+              </div>
+            )}
+            {activeView === "settings" && (
+              <ControlPanel
+                filters={filters}
+                visualizationSettings={visualizationSettings}
+                theme={theme}
+                onFiltersChange={setFilters}
+                onVisualizationChange={setVisualizationSettings}
+                onThemeChange={setTheme}
+                isOpen={true}
+                onClose={() => setActiveView("map")}
+                // className removed for mobile overlay
+              />
+            )}
+            {activeView === "info" && (
+              <div className="my-10 mb-28 z-40 bg-white dark:bg-gray-900 overflow-y-auto flex flex-col items-center justify-center">
+                {/* Info tab redesign will be implemented next */}
+                <Legend className="w-full max-w-md mx-auto mb-4" />
+                <MetricsDashboard
+                  metrics={{
+                    totalExchanges: allFilteredExchanges.length,
+                    activeConnections: filteredConnections.length,
+                    averageLatency:
+                      filteredConnections.length > 0
+                        ? filteredConnections.reduce(
+                            (sum, c) => sum + c.latency,
+                            0
+                          ) / filteredConnections.length
+                        : 0,
+                    uptime,
+                    lastUpdated: lastUpdated,
+                  }}
+                  isLoading={isLoading}
+                  className="w-full max-w-md mx-auto"
+                  isOpen={true}
+                  onClose={() => setActiveView("map")}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="h-screen relative">
+            <Map3D
+              exchanges={allFilteredExchanges}
+              connections={createLatencyConnections(allExchanges, latencyData)}
+              filters={filters}
+              visualizationSettings={visualizationSettings}
+              theme={theme.mode}
+              mapStyle={theme.mapStyle}
+              onExchangeClick={handleExchangeClick}
+              onExchangeHover={handleExchangeHover}
+            />
+
+            {/* Control Panel as popup */}
+            <ControlPanel
+              filters={filters}
+              visualizationSettings={visualizationSettings}
+              theme={theme}
+              onFiltersChange={setFilters}
+              onVisualizationChange={setVisualizationSettings}
+              onThemeChange={setTheme}
+              isOpen={openPopup === "control"}
+              onOpen={() => setOpenPopup("control")}
+              onClose={() => setOpenPopup(null)}
+            />
+
+            {/* Legend */}
+            <Legend className="fixed bottom-10 left-2 z-30 w-60 max-w-sm" />
+
+            {/* Metrics Dashboard as popup */}
+            <MetricsDashboard
+              metrics={{
+                totalExchanges: allFilteredExchanges.length,
+                activeConnections: filteredConnections.length,
+                averageLatency:
+                  filteredConnections.length > 0
+                    ? filteredConnections.reduce(
+                        (sum, c) => sum + c.latency,
+                        0
+                      ) / filteredConnections.length
+                    : 0,
+                uptime,
+                lastUpdated: lastUpdated,
+              }}
+              isLoading={isLoading}
+              className="fixed bottom-10 right-2 z-30 w-96"
+              isOpen={openPopup === "metrics"}
+              onOpen={() => setOpenPopup("metrics")}
+              onClose={() => setOpenPopup(null)}
+            />
+
+            <PerformanceMonitor className="fixed top-22 left-2 z-30 w-60 max-w-sm" />
+
+            {/* Selected Exchange Info */}
+            {selectedExchange && (
+              <Card className="fixed top-22 left-2 z-30 p-4 pt-3 w-60 max-w-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">
+                    {selectedExchange.displayName}
+                  </h4>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setSelectedExchange(null)}
+                    className="text-gray-400 hover:text-gray-600 rounded-full"
                   >
-                    {selectedExchange.status}
-                  </span>
+                    <X />
+                  </Button>
                 </div>
-              </div>
-            </Card>
-          )}
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Provider:</span>
+                    <span className="font-medium">
+                      {selectedExchange.cloudProvider}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Region:</span>
+                    <span className="font-medium">
+                      {selectedExchange.region}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Servers:</span>
+                    <span className="font-medium">
+                      {selectedExchange.serverCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span
+                      className={`font-medium capitalize ${
+                        selectedExchange.status === "online"
+                          ? "text-green-600"
+                          : selectedExchange.status === "maintenance"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {selectedExchange.status}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            )}
 
-          {/* Hovered Exchange Tooltip */}
-          {hoveredExchange && (
-            <Card className="fixed top-22 left-2 z-40 p-3 w-60 max-w-sm pointer-events-none">
-              <p className="font-medium text-sm">
-                {hoveredExchange.displayName}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {hoveredExchange.cloudProvider} • {hoveredExchange.region}
-              </p>
-            </Card>
-          )}
-        </div>
+            {/* Hovered Exchange Tooltip */}
+            {hoveredExchange && (
+              <Card className="fixed top-22 left-2 z-40 p-3 w-60 max-w-sm pointer-events-none">
+                <p className="font-medium text-sm">
+                  {hoveredExchange.displayName}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {hoveredExchange.cloudProvider} • {hoveredExchange.region}
+                </p>
+              </Card>
+            )}
+          </div>
+        )}
 
-        {/* Latency Chart Panel as popup */}
-        {openPopup === "chart" && (
+        {/* Latency Chart Panel as popup (desktop only) */}
+        {!isTabletOrMobile && openPopup === "chart" && (
           <div className="fixed inset-x-2 bottom-9 z-30 h-96">
             <LatencyChart
               data={historicalData}

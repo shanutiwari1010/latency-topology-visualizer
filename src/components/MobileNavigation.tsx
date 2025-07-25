@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Map,
   BarChart3,
@@ -31,6 +31,75 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   className,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Handler: Export Data
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await fetch("/api/latency", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "export" }),
+      });
+      const data = await res.json();
+      if (data.success && data.downloadUrl) {
+        const link = document.createElement("a");
+        link.href = data.downloadUrl;
+        link.download = "latency-data.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setToast("Export started. Check your downloads.");
+      } else {
+        setToast("Export failed.");
+      }
+    } catch (e) {
+      setToast("Export failed.");
+    }
+    setExporting(false);
+    setIsMenuOpen(false);
+  };
+
+  // Handler: Share View
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setToast("Link copied to clipboard!");
+    } catch {
+      setToast("Failed to copy link.");
+    }
+    setIsMenuOpen(false);
+  };
+
+  // Handler: Help
+  const handleHelp = () => {
+    setShowHelp(true);
+    setIsMenuOpen(false);
+  };
+
+  // Handler: Search/Filters
+  const handleSearch = () => {
+    onViewChange("settings");
+    setIsMenuOpen(false);
+    // Optionally, focus search input via context/ref
+  };
+
+  // Handler: Advanced Filters
+  const handleFilters = () => {
+    onViewChange("settings");
+    setIsMenuOpen(false);
+  };
+
+  // Toast auto-hide
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   const navItems = [
     { id: "map" as const, icon: Map, label: "3D Map", badge: null },
@@ -90,6 +159,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
+                onClick={handleSearch}
               >
                 <Search className="w-4 h-4 mr-2" />
                 Search
@@ -98,6 +168,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
+                onClick={handleFilters}
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Advanced Filters
@@ -106,14 +177,17 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
+                onClick={handleExport}
+                disabled={exporting}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Export Data
+                {exporting ? "Exporting..." : "Export Data"}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
+                onClick={handleShare}
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share View
@@ -123,6 +197,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start"
+                  onClick={handleHelp}
                 >
                   <HelpCircle className="w-4 h-4 mr-2" />
                   Help
@@ -130,6 +205,56 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               </div>
             </div>
           </Card>
+        )}
+        {/* Help Modal */}
+        {showHelp && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <Card className="p-6 max-w-md w-full mx-2">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold">Help & Info</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowHelp(false)}
+                >
+                  <X />
+                </Button>
+              </div>
+              <div className="space-y-3 text-sm">
+                <p>
+                  <b>Latency Topology Visualizer</b> helps you explore exchange
+                  latency, regions, and network topology for crypto trading
+                  infrastructure.
+                </p>
+                <p>
+                  Use the Control Panel to filter exchanges, regions, and
+                  latency. Use the chart to view historical trends. Tap the
+                  legend for map info.
+                </p>
+                <p>
+                  For more help, contact:{" "}
+                  <a
+                    href="mailto:support@goquant.ai"
+                    className="text-blue-600 underline"
+                  >
+                    support@goquant.ai
+                  </a>
+                </p>
+              </div>
+              <Button
+                className="mt-6 w-full"
+                onClick={() => setShowHelp(false)}
+              >
+                Close
+              </Button>
+            </Card>
+          </div>
+        )}
+        {/* Toast */}
+        {toast && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white px-4 py-2 rounded shadow-lg text-sm">
+            {toast}
+          </div>
         )}
       </div>
     </>

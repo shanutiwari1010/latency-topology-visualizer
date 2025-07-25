@@ -22,8 +22,10 @@ import {
   // EXCHANGE_LOCATIONS,
   PROVIDER_COLORS,
   LATENCY_QUALITY_COLORS,
-  LATENCY_THRESHOLDS,
+  // LATENCY_THRESHOLDS,
 } from "@/constants/exchangeLocations";
+
+import useIsMobile from "@/hooks/useIsMobile";
 
 interface Map3DProps {
   exchanges: ExchangeLocation[];
@@ -34,6 +36,7 @@ interface Map3DProps {
   mapStyle?: "realistic" | "neon" | "minimal";
   onExchangeClick?: (exchange: ExchangeLocation) => void;
   onExchangeHover?: (exchange: ExchangeLocation | null) => void;
+  isMobile?: boolean; // add this line
 }
 
 // Convert lat/lng to 3D coordinates on a sphere
@@ -712,6 +715,7 @@ const Scene3D: React.FC<Map3DProps> = ({
   mapStyle,
   onExchangeClick,
   onExchangeHover,
+  isMobile,
 }) => {
   // Filter exchanges based on current filters
   const filteredExchanges = useMemo(() => {
@@ -832,7 +836,7 @@ const Scene3D: React.FC<Map3DProps> = ({
       {/* Enhanced Camera controls */}
       <OrbitControls
         enableZoom={true}
-        enablePan={true}
+        enablePan={!isMobile} // Optionally disable pan on mobile for easier use
         enableRotate={true}
         minDistance={1.5}
         maxDistance={8}
@@ -842,6 +846,9 @@ const Scene3D: React.FC<Map3DProps> = ({
         enableDamping={true}
         maxPolarAngle={Math.PI}
         minPolarAngle={0}
+        // Optionally adjust sensitivity for mobile
+        rotateSpeed={isMobile ? 0.7 : 1}
+        zoomSpeed={isMobile ? 0.7 : 1}
       />
     </>
   );
@@ -857,24 +864,25 @@ const Map3D: React.FC<Map3DProps> = (props) => {
     }
   }, [props.theme]);
 
+  const isMobile = useIsMobile();
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-[60vh] md:h-[80vh]">
       <Canvas
-        camera={{ position: [0, 0, 3], fov: 60 }}
+        camera={{ position: [0, 0, isMobile ? 2.5 : 3], fov: isMobile ? 70 : 60 }}
         style={{ background: backgroundColor }}
         gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance",
+          antialias: !isMobile,
+          powerPreference: isMobile ? "low-power" : "high-performance",
           toneMapping:
             props.theme === "dark"
               ? THREE.ACESFilmicToneMapping
               : THREE.LinearToneMapping,
           toneMappingExposure: props.theme === "dark" ? 1.2 : 1.0,
         }}
-        shadows={true}
+        shadows={!isMobile}
       >
-        <Scene3D {...props} />
+        <Scene3D {...props} isMobile={isMobile} />
       </Canvas>
     </div>
   );

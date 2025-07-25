@@ -174,25 +174,34 @@ const LatencyChart: React.FC<LatencyChartProps> = ({
     }
   };
 
+  // Detect mobile (tailwind: max-width 768px)
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
     <Card className={`p-6 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
         <div className="flex items-center space-x-2">
           <Clock className="w-5 h-5 text-blue-600" />
           <h3 className="text-lg font-semibold">Latency Trends</h3>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className={isMobile ? "w-full" : "flex items-center space-x-2"}>
           <Select
             value={timeRange}
             onValueChange={(value) => onTimeRangeChange(value as TimeRange)}
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger
+              className={isMobile ? "w-full h-12 text-base" : "w-32"}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {timeRangeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className={isMobile ? "text-base" : undefined}
+                >
                   {option.label}
                 </SelectItem>
               ))}
