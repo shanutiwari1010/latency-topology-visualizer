@@ -51,11 +51,10 @@ const latLngToVector3 = (lat: number, lng: number, radius: number = 1) => {
 // Get latency quality based on value
 const getLatencyQuality = (
   latency: number
-): "excellent" | "good" | "fair" | "poor" => {
-  if (latency <= LATENCY_THRESHOLDS.excellent) return "excellent";
-  if (latency <= LATENCY_THRESHOLDS.good) return "good";
-  if (latency <= LATENCY_THRESHOLDS.fair) return "fair";
-  return "poor";
+): "low" | "medium" | "high" => {
+  if (latency <= 50) return "low";
+  if (latency <= 100) return "medium";
+  return "high";
 };
 
 // Enhanced Earth component with multiple map styles

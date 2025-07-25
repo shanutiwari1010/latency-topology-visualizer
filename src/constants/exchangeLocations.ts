@@ -245,10 +245,9 @@ export const PROVIDER_COLORS = {
 };
 
 export const LATENCY_QUALITY_COLORS = {
-  excellent: "#10B981", // Green
-  good: "#F59E0B", // Yellow
-  fair: "#EF4444", // Orange
-  poor: "#DC2626", // Red
+  high:"#DC2626", // Red 
+  medium: "#F59E0B", // Yellow
+  low: "#10B981", // Green
 };
 
 export const LATENCY_THRESHOLDS = {
