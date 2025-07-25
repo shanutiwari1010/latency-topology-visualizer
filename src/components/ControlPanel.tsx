@@ -140,9 +140,21 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <Card className={`${isMobile ? mobileCardClass : cardClass}`}>
       {/* Sticky header for mobile */}
-      <div className={`${isMobile ? "sticky top-0 z-10 bg-white dark:bg-gray-900 px-4 pt-4 pb-2 border-b border-gray-200 dark:border-gray-800" : "flex items-center justify-between"}`}>
+      <div
+        className={`${
+          isMobile
+            ? "sticky top-0 z-10 bg-white dark:bg-gray-900 px-4 pt-4 pb-2 border-b border-gray-200 dark:border-gray-800"
+            : "flex items-center justify-between"
+        }`}
+      >
         <div className="flex items-center justify-between w-full">
-          <h3 className={`${isMobile ? "text-xl font-bold" : "text-lg font-semibold"}`}>Control Panel</h3>
+          <h3
+            className={`${
+              isMobile ? "text-xl font-bold" : "text-lg font-semibold"
+            }`}
+          >
+            Control Panel
+          </h3>
           <Button
             variant="ghost"
             size={isMobile ? "lg" : "sm"}
@@ -155,7 +167,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
 
       {/* Sticky/scrollable tab bar for mobile */}
-      <div className={`${isMobile ? "sticky top-14 z-10 bg-white dark:bg-gray-900 px-2 pt-2 pb-2 border-b border-gray-200 dark:border-gray-800 overflow-x-auto flex gap-2" : "flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 -mt-3"}`}>
+      <div
+        className={`${
+          isMobile
+            ? "sticky top-14 z-10 bg-white dark:bg-gray-900 px-2 pt-2 pb-2 border-b border-gray-200 dark:border-gray-800 overflow-x-auto flex gap-2"
+            : "flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 -mt-3"
+        }`}
+      >
         {[
           { key: "filters", label: "Filters", icon: Filter },
           { key: "visualization", label: "Visual", icon: Eye },
@@ -165,7 +183,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             key={tab.key}
             variant={activeTab === tab.key ? "default" : "ghost"}
             size={isMobile ? "lg" : "sm"}
-            className={`flex-1 whitespace-nowrap ${isMobile ? "px-4 py-2 text-base" : ""}`}
+            className={`flex-1 whitespace-nowrap ${
+              isMobile ? "px-4 py-2 text-base" : ""
+            }`}
             onClick={() => setActiveTab(tab.key as FiltersOptions)}
           >
             <tab.icon className={isMobile ? "w-5 h-5 mr-2" : "w-3 h-3 mr-1"} />
@@ -175,7 +195,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
 
       {/* Main content area, scrollable on mobile */}
-      <div className={`${isMobile ? "flex-1 px-4 py-4 space-y-8 overflow-y-auto" : ""}`}>
+      <div
+        className={`${
+          isMobile ? "flex-1 px-4 py-4 space-y-8 overflow-y-auto" : ""
+        }`}
+      >
         {/* Search Bar */}
         {activeTab === "filters" && (
           <div className="relative mb-4">
@@ -183,7 +207,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             <input
               type="text"
               placeholder="Search exchanges..."
-              className={`w-full pl-12 pr-4 py-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 ${isMobile ? "text-base" : ""}`}
+              className={`w-full pl-12 pr-4 py-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 ${
+                isMobile ? "text-base" : ""
+              }`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -195,7 +221,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <div className="space-y-6">
             {/* Exchange Selection */}
             <div>
-              <label className="block text-base font-semibold mb-3">Exchanges</label>
+              <label className="block text-base font-semibold mb-3">
+                Exchanges
+              </label>
               <div className="space-y-3 max-h-48 overflow-y-auto">
                 {uniqueExchanges
                   .filter((exchange) =>
@@ -211,7 +239,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                         id={`exchange-${exchange}-${idx}`}
                         checked={filters.exchanges.includes(exchange)}
                         onChange={() => toggleExchange(exchange)}
-                        className={`accent-blue-600 w-5 h-5 ${isMobile ? "rounded-lg" : ""}`}
+                        className={`accent-blue-600 w-5 h-5 ${
+                          isMobile ? "rounded-lg" : ""
+                        }`}
                       />
                       <label
                         htmlFor={`exchange-${exchange}-${idx}`}
@@ -237,13 +267,18 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       id={`provider-${provider}`}
                       checked={filters.cloudProviders.includes(provider)}
                       onChange={() => toggleCloudProvider(provider)}
-                      className={`accent-blue-600 w-5 h-5 ${isMobile ? "rounded-lg" : ""}`}
+                      className={`accent-blue-600 w-5 h-5 ${
+                        isMobile ? "rounded-lg" : ""
+                      }`}
                     />
                     <div
                       className="w-5 h-5 rounded mr-2"
                       style={{ backgroundColor: PROVIDER_COLORS[provider] }}
                     />
-                    <label htmlFor={`provider-${provider}`} className="text-base">
+                    <label
+                      htmlFor={`provider-${provider}`}
+                      className="text-base"
+                    >
                       {provider}
                     </label>
                   </div>
@@ -254,7 +289,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {/* Latency Range */}
             <div>
               <label className="block text-base font-semibold mb-3">
-                Latency Range (ms): {filters.latencyRange.min} - {filters.latencyRange.max}
+                Latency Range (ms): {filters.latencyRange.min} -{" "}
+                {filters.latencyRange.max}
               </label>
               <div className="space-y-3">
                 <div>
@@ -334,7 +370,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             {/* Reset Filters */}
-            <Button variant="outline" onClick={resetFilters} className="w-full py-3 text-base">
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="w-full py-3 text-base"
+            >
               Reset Filters
             </Button>
           </div>
@@ -345,7 +385,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <div className="space-y-6">
             <div>
               <label className="block text-base font-semibold mb-3">
-                Animation Speed: {visualizationSettings.animationSpeed.toFixed(1)}x
+                Animation Speed:{" "}
+                {visualizationSettings.animationSpeed.toFixed(1)}x
               </label>
               <input
                 type="range"
@@ -428,7 +469,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         {activeTab === "theme" && (
           <div className="space-y-6">
             <div>
-              <label className="block text-base font-semibold mb-3">Theme Mode</label>
+              <label className="block text-base font-semibold mb-3">
+                Theme Mode
+              </label>
               <div className="flex space-x-3">
                 <Button
                   variant={theme.mode === "dark" ? "default" : "outline"}
@@ -450,7 +493,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             <div>
-              <Label className="block text-base font-semibold mb-3">Map Style</Label>
+              <Label className="block text-base font-semibold mb-3">
+                Map Style
+              </Label>
               <Select
                 value={theme.mapStyle}
                 onValueChange={(value) =>
@@ -464,7 +509,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                   <SelectGroup>
                     <SelectLabel>Styles</SelectLabel>
                     {MAP_STYLES_OPTIONS?.map((style) => (
-                      <SelectItem key={style.value} value={style.value} className="text-base">
+                      <SelectItem
+                        key={style.value}
+                        value={style.value}
+                        className="text-base"
+                      >
                         {style.label}
                       </SelectItem>
                     ))}

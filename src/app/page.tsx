@@ -229,7 +229,7 @@ export default function CryptoLatencyVisualizer() {
               <MapPin className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-base font-bold text-gray-900 dark:text-white">
                 Crypto Exchange Latency Monitor
               </h1>
               <p className="max-sm:hidden text-sm text-gray-600 dark:text-gray-400">
@@ -244,7 +244,9 @@ export default function CryptoLatencyVisualizer() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setOpenPopup(openPopup === "chart" ? null : "chart")}
+                onClick={() =>
+                  setOpenPopup(openPopup === "chart" ? null : "chart")
+                }
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 {openPopup === "chart" ? "Hide" : "Show"} Chart
@@ -258,24 +260,43 @@ export default function CryptoLatencyVisualizer() {
             </div>
           )}
 
-          {/* Mobile: refresh icon with tooltip */}
+          {/* Mobile: refresh icon and hamburger menu */}
           {isTabletOrMobile && (
-            <Tooltip content="Refresh Data">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Refresh Data"
-                onClick={refreshData}
-                className="ml-2"
-              >
-                <RefreshCw className={`w-6 h-6 ${isLoading ? "animate-spin" : ""}`} />
-              </Button>
-            </Tooltip>
+            <div className="flex items-center space-x-2">
+              <Tooltip content="Refresh Data">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Refresh Data"
+                  onClick={refreshData}
+                  className="ml-2"
+                >
+                  <RefreshCw
+                    className={`w-6 h-6 ${isLoading ? "animate-spin" : ""}`}
+                  />
+                </Button>
+              </Tooltip>
+              {/* Hamburger menu in header */}
+              <MobileNavigation
+                activeView={activeView}
+                onViewChange={setActiveView}
+                isLoading={isLoading}
+                showOnlyMenu={true}
+              />
+            </div>
           )}
         </div>
       </header>
 
-      <MobileNavigation activeView={activeView} onViewChange={setActiveView} />
+      {/* Bottom Navigation Bar (always visible on mobile/tablet) */}
+      {isTabletOrMobile && (
+        <MobileNavigation
+          activeView={activeView}
+          onViewChange={setActiveView}
+          isLoading={isLoading}
+          showOnlyBottomNav={true}
+        />
+      )}
 
       {/* Main content */}
       <div className="relative">
@@ -301,7 +322,7 @@ export default function CryptoLatencyVisualizer() {
               </div>
             )}
             {activeView === "chart" && (
-              <div className="mb-28 z-30 bg-white dark:bg-gray-900">
+              <div className="mb-72 z-30 bg-white dark:bg-gray-900">
                 <LatencyChart
                   data={historicalData}
                   selectedPair={selectedPair}
