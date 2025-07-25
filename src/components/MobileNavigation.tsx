@@ -14,8 +14,8 @@ import {
   Share2,
   HelpCircle,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface MobileNavigationProps {
   activeView: "map" | "chart" | "settings" | "info";

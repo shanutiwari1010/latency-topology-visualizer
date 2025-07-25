@@ -7,18 +7,54 @@ import {
   PROVIDER_COLORS,
   LATENCY_QUALITY_COLORS,
 } from "@/constants/exchangeLocations";
-import { Card } from "./ui/card";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 interface LegendProps {
   className?: string;
 }
 
 const Legend: React.FC<LegendProps> = ({ className }) => {
+  const [visible, setVisible] = React.useState(true);
+
+  // Responsive card width and position
+  const cardClass =
+    "fixed bottom-10 left-2 z-30 w-full max-w-xs sm:max-w-sm md:max-w-md lg:w-60 p-4 shadow-lg bg-white dark:bg-gray-900";
+
+  if (!visible) {
+    return (
+      <div className="fixed bottom-10 left-2 z-40">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label="Show legend"
+          onClick={() => setVisible(true)}
+          className="shadow-lg"
+        >
+          <Eye className="w-4 h-4 mr-1" />
+          Show Legend
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Card className={`p-4 ${className}`}>
-      <div className="flex items-center">
-        <Info className="w-4 h-4 mr-2 text-blue-600" />
-        <h4 className="font-semibold text-sm">Legend</h4>
+    <Card className={`${cardClass} ${className || ""}`} tabIndex={0} aria-label="Legend" role="region">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center">
+          <Info className="w-4 h-4 mr-2 text-blue-600" />
+          <h4 className="font-semibold text-sm">Legend</h4>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Hide legend"
+          onClick={() => setVisible(false)}
+          className="ml-2"
+        >
+          <EyeOff className="w-4 h-4" />
+        </Button>
       </div>
 
       <div className="space-y-4 text-sm -mt-2">

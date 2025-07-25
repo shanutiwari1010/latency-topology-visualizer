@@ -7,8 +7,8 @@ import {
   EXCHANGE_LOCATIONS,
   PROVIDER_COLORS,
 } from "@/constants/exchangeLocations";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -17,9 +17,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface ControlPanelProps {
   filters: FilterOptions;
@@ -28,6 +28,9 @@ interface ControlPanelProps {
   onFiltersChange: (filters: FilterOptions) => void;
   onVisualizationChange: (settings: VisualizationSettings) => void;
   onThemeChange: (theme: ThemeSettings) => void;
+  isOpen?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
 type FiltersOptions = "filters" | "visualization" | "theme";
@@ -45,8 +48,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onFiltersChange,
   onVisualizationChange,
   onThemeChange,
+  isOpen,
+  onOpen,
+  onClose,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [internalOpen, setInternalOpen] = useState(true);
+  const expanded = typeof isOpen === "boolean" ? isOpen : internalOpen;
+  const setExpanded = (open: boolean) => {
+    if (typeof isOpen === "boolean") {
+      if (open && onOpen) onOpen();
+      if (!open && onClose) onClose();
+    } else {
+      setInternalOpen(open);
+    }
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<FiltersOptions>("filters");
 
@@ -103,10 +118,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     });
   };
 
-  if (!isExpanded) {
+  if (!expanded) {
     return (
       <div className="fixed top-22 right-3 p-2 z-50">
-        <Button variant="outline" size="sm" onClick={() => setIsExpanded(true)}>
+        <Button variant="outline" size="sm" onClick={() => setExpanded(true)}>
           <Settings className="w-4 h-4" />
         </Button>
       </div>
@@ -114,10 +129,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   }
 
   return (
-    <Card className="fixed top-22 right-2 w-96 max-h-[84vh] overflow-y-auto z-50 p-4">
+    <Card className="fixed top-20 right-2 w-full max-w-md md:w-96 z-50 p-4 max-h-[60vh] md:max-h-[84vh] overflow-y-auto shadow-xl">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Control Panel</h3>
-        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(false)}>
+        <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
           <EyeOff className="w-4 h-4" />
         </Button>
       </div>

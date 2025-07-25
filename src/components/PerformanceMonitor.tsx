@@ -11,7 +11,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
-import { Card } from "./ui/card";
+import { Card } from "@/components/ui/card";
 
 interface PerformanceMetrics {
   fps: number;

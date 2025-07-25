@@ -120,8 +120,13 @@ export default function CryptoLatencyVisualizer() {
   );
 
   // Calculate uptime as percent of online exchanges in allFilteredExchanges
-  const onlineCount = allFilteredExchanges.filter(e => e.status === 'online').length;
-  const uptime = allFilteredExchanges.length > 0 ? (onlineCount / allFilteredExchanges.length) * 100 : 0;
+  const onlineCount = allFilteredExchanges.filter(
+    (e) => e.status === "online"
+  ).length;
+  const uptime =
+    allFilteredExchanges.length > 0
+      ? (onlineCount / allFilteredExchanges.length) * 100
+      : 0;
 
   // Apply theme to document
   useEffect(() => {
@@ -157,6 +162,11 @@ export default function CryptoLatencyVisualizer() {
     },
     [setHoveredExchange]
   );
+
+  // Popup state management
+  const [openPopup, setOpenPopup] = useState<
+    "control" | "metrics" | "chart" | null
+  >("metrics");
 
   // Error state
   if (error || regionExError) {
@@ -217,10 +227,12 @@ export default function CryptoLatencyVisualizer() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowChart(!showChart)}
+              onClick={() =>
+                setOpenPopup(openPopup === "chart" ? null : "chart")
+              }
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              {showChart ? "Hide" : "Show"} Chart
+              {openPopup === "chart" ? "Hide" : "Show"} Chart
             </Button>
             <Button variant="outline" size="sm" onClick={refreshData}>
               <RefreshCw
@@ -261,7 +273,7 @@ export default function CryptoLatencyVisualizer() {
             onExchangeHover={handleExchangeHover}
           />
 
-          {/* Control Panel */}
+          {/* Control Panel as popup */}
           <ControlPanel
             filters={filters}
             visualizationSettings={visualizationSettings}
@@ -269,12 +281,15 @@ export default function CryptoLatencyVisualizer() {
             onFiltersChange={setFilters}
             onVisualizationChange={setVisualizationSettings}
             onThemeChange={setTheme}
+            isOpen={openPopup === "control"}
+            onOpen={() => setOpenPopup("control")}
+            onClose={() => setOpenPopup(null)}
           />
 
           {/* Legend */}
           <Legend className="fixed bottom-10 left-2 z-30 w-60 max-w-sm" />
 
-          {/* Metrics Dashboard */}
+          {/* Metrics Dashboard as popup */}
           <MetricsDashboard
             metrics={{
               totalExchanges: allFilteredExchanges.length,
@@ -289,6 +304,9 @@ export default function CryptoLatencyVisualizer() {
             }}
             isLoading={isLoading}
             className="fixed bottom-10 right-2 z-30 w-96"
+            isOpen={openPopup === "metrics"}
+            onOpen={() => setOpenPopup("metrics")}
+            onClose={() => setOpenPopup(null)}
           />
 
           <PerformanceMonitor className="fixed top-22 left-2 z-30 w-60 max-w-sm" />
@@ -357,8 +375,8 @@ export default function CryptoLatencyVisualizer() {
           )}
         </div>
 
-        {/* Latency Chart Panel */}
-        {showChart && (
+        {/* Latency Chart Panel as popup */}
+        {openPopup === "chart" && (
           <div className="fixed inset-x-2 bottom-9 z-30 h-96">
             <LatencyChart
               data={historicalData}

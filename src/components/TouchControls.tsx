@@ -2,8 +2,8 @@
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { RotateCcw, ZoomIn, ZoomOut, RotateCw } from "lucide-react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface TouchControlsProps {
   onRotate?: (direction: "left" | "right") => void;

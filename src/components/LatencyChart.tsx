@@ -15,14 +15,14 @@ import {
 } from "recharts";
 import { Clock, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { HistoricalLatencyData, TimeRange, ChartDataPoint } from "@/types";
-import { Card } from "./ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
 
 interface LatencyChartProps {
   data: HistoricalLatencyData[];
